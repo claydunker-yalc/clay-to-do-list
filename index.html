@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clay's To-Do List</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f1e8;
+    color: #2c2c2c;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    background: #fffdf7;
+    border: 1px solid #d9d2bf;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+    color: #1a3a52;
+  }
+  .subtitle {
+    color: #7a7264;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #e8e0cc;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #c9a14a;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+  .section {
+    margin-bottom: 1.75rem;
+  }
+  .section-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a3a52;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #e8e0cc;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.65rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .task:hover {
+    background: #f5f1e8;
+  }
+  .task input[type="checkbox"] {
+    margin-top: 0.2rem;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #c9a14a;
+    flex-shrink: 0;
+  }
+  .task-number {
+    color: #a89b7e;
+    font-weight: 600;
+    min-width: 1.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .task-text {
+    flex: 1;
+    line-height: 1.4;
+  }
+  .task.done .task-text,
+  .task.done .task-number {
+    text-decoration: line-through;
+    color: #a89b7e;
+  }
+  .note {
+    font-size: 0.8rem;
+    color: #7a7264;
+    font-style: italic;
+    margin-left: 0.4rem;
+  }
+  .reset-btn {
+    margin-top: 1.5rem;
+    background: transparent;
+    border: 1px solid #d9d2bf;
+    color: #7a7264;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover {
+    background: #f5f1e8;
+    color: #2c2c2c;
+  }
+  .footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e8e0cc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stats {
+    font-size: 0.85rem;
+    color: #7a7264;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Clay's To-Do List</h1>
+  <div class="subtitle">Updated <span id="date"></span></div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">🔥 Before Wednesday</div>
+    <label class="task done"><input type="checkbox" checked><span class="task-number">1.</span><span class="task-text">CU meeting agenda</span></label>
+    <label class="task done"><input type="checkbox" checked><span class="task-number">2.</span><span class="task-text">Track hours worked</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">3.</span><span class="task-text">Sub plans for Thursday morning</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">4.</span><span class="task-text">Finish CU financials dashboard</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">5.</span><span class="task-text">Print Nate Notes to laminate</span></label>
+  </div>
+
+  <div class="section">
+    <div class="section-header">📅 By Friday</div>
+    <label class="task"><input type="checkbox"><span class="task-number">6.</span><span class="task-text">New Orleans trip plans</span></label>
+  </div>
+
+  <div class="section">
+    <div class="section-header">⏭️ Next week + follow-ups</div>
+    <label class="task"><input type="checkbox"><span class="task-number">7.</span><span class="task-text">Sub plans for Monday/Tuesday next week</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">8.</span><span class="task-text">Senior AI survey <span class="note">(waiting on Adam)</span></span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">9.</span><span class="task-text">Job description handoff interview</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">10.</span><span class="task-text">Clay-Mate MCP searchable dashboard</span></label>
+  </div>
+
+  <div class="section">
+    <div class="section-header">💡 Low priority</div>
+    <label class="task"><input type="checkbox"><span class="task-number">11.</span><span class="task-text">Socratic method prompt</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">12.</span><span class="task-text">Claude Design study — sites I like</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">13.</span><span class="task-text">AI Cred assessment retake</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">14.</span><span class="task-text">MagicWalk app</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">15.</span><span class="task-text">Flummoxing Flags app</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">16.</span><span class="task-text">Compare Chalkie vs. Diffit vs. Brisk</span></label>
+  </div>
+
+  <div class="footer">
+    <div class="stats" id="stats">0 of 16 complete</div>
+    <button class="reset-btn" onclick="resetAll()">Reset all</button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'clay-todo-v1';
+
+  document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric'
+  });
+
+  const tasks = document.querySelectorAll('.task');
+  const checkboxes = document.querySelectorAll('.task input[type="checkbox"]');
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    checkboxes.forEach((cb, i) => {
+      if (saved[i] !== undefined) {
+        cb.checked = saved[i];
+        cb.closest('.task').classList.toggle('done', cb.checked);
+      }
+    });
+  } catch(e) {}
+
+  function saveState() {
+    const state = Array.from(checkboxes).map(cb => cb.checked);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  function updateProgress() {
+    const total = checkboxes.length;
+    const done = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const pct = (done / total) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+    document.getElementById('stats').textContent = `${done} of ${total} complete`;
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('.task').classList.toggle('done', cb.checked);
+      saveState();
+      updateProgress();
+    });
+  });
+
+  function resetAll() {
+    if (!confirm('Reset all tasks?')) return;
+    checkboxes.forEach(cb => {
+      cb.checked = false;
+      cb.closest('.task').classList.remove('done');
+    });
+    saveState();
+    updateProgress();
+  }
+
+  updateProgress();
+</script>
+</body>
+</html>
