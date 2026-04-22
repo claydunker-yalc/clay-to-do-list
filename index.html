@@ -95,6 +95,20 @@
     text-decoration: line-through;
     color: #a89b7e;
   }
+  .task-text a {
+    color: #1a3a52;
+    text-decoration: underline;
+    text-decoration-color: #c9a14a;
+    text-underline-offset: 2px;
+    font-weight: 500;
+  }
+  .task-text a:hover {
+    color: #c9a14a;
+  }
+  .task.done .task-text a {
+    color: #a89b7e;
+    text-decoration-color: #a89b7e;
+  }
   .note {
     font-size: 0.8rem;
     color: #7a7264;
@@ -150,7 +164,7 @@
     <div class="section-header">⏭️ Next week + follow-ups</div>
     <label class="task"><input type="checkbox"><span class="task-number">4.</span><span class="task-text">Job description handoff interview</span></label>
     <label class="task"><input type="checkbox"><span class="task-number">5.</span><span class="task-text">Clay-Mate MCP searchable dashboard</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">6.</span><span class="task-text">Review AI Survey first draft, share with Adam</span></label>
+    <label class="task"><input type="checkbox"><span class="task-number">6.</span><span class="task-text">Review <a href="https://docs.google.com/forms/d/1dhce8ibBCnBtYm0WOzgEElm5Q6oozsLadivq3UEBdc4/edit" target="_blank" rel="noopener" onclick="event.stopPropagation()">AI Survey first draft</a>, share with Adam</span></label>
   </div>
 
   <div class="section">
