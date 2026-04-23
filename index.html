@@ -18,6 +18,21 @@
     --hairline: #e7e5e4;
     --subtle: #f5f4f2;
   }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --ink: #fafafa;
+    --muted: #a3a3a3;
+    --faint: #6b6b6b;
+    --hairline: #262626;
+    --subtle: #1c1c1c;
+  }
+  body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .container {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
@@ -32,6 +47,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
   .container {
+    position: relative;
     max-width: 580px;
     margin: 0 auto;
     background: var(--surface);
@@ -39,6 +55,39 @@
     border-radius: 24px;
     padding: 3.5rem 3rem;
   }
+  .theme-toggle {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--faint);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .theme-toggle:hover {
+    color: var(--ink);
+    border-color: var(--muted);
+  }
+  .theme-toggle svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .theme-toggle .icon-moon { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
   @media (max-width: 520px) {
     body { padding: 2rem 0.75rem 4rem; }
     .container { padding: 2.25rem 1.5rem; border-radius: 20px; }
@@ -236,6 +285,15 @@
 </head>
 <body>
 <div class="container">
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+    </svg>
+  </button>
   <div class="header">
     <h1>Clay&rsquo;s List</h1>
     <div class="subtitle" id="date"></div>
@@ -287,6 +345,23 @@
 
 <script>
   const STORAGE_KEY = 'clay-todo-v4';
+  const THEME_KEY = 'clay-todo-theme';
+
+  (function initTheme() {
+    let theme;
+    try { theme = localStorage.getItem(THEME_KEY); } catch(e) {}
+    if (!theme) {
+      theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
+  });
 
   document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
