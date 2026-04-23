@@ -5,197 +5,293 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clay's To-Do List</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --ink: #0a0a0a;
+    --muted: #6b6b6b;
+    --faint: #a3a3a3;
+    --hairline: #e7e5e4;
+    --subtle: #f5f4f2;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f5f1e8;
-    color: #2c2c2c;
-    padding: 2rem 1rem;
-    min-height: 100vh;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 200;
+    font-size: 16px;
+    line-height: 1.5;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 4rem 1.25rem 6rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   .container {
-    max-width: 640px;
+    max-width: 580px;
     margin: 0 auto;
-    background: #fffdf7;
-    border: 1px solid #d9d2bf;
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 24px;
+    padding: 3.5rem 3rem;
+  }
+  @media (max-width: 520px) {
+    body { padding: 2rem 0.75rem 4rem; }
+    .container { padding: 2.25rem 1.5rem; border-radius: 20px; }
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2.5rem;
   }
   h1 {
-    font-size: 1.8rem;
-    margin-bottom: 0.25rem;
-    color: #1a3a52;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400;
+    font-size: 2.75rem;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
   }
   .subtitle {
-    color: #7a7264;
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .progress {
+    margin: 0 0 2.75rem;
   }
   .progress-bar {
-    height: 6px;
-    background: #e8e0cc;
-    border-radius: 3px;
+    height: 2px;
+    background: var(--hairline);
+    border-radius: 2px;
     overflow: hidden;
-    margin-bottom: 2rem;
   }
   .progress-fill {
     height: 100%;
-    background: #c9a14a;
-    transition: width 0.3s ease;
+    background: var(--ink);
+    border-radius: 2px;
     width: 0%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 300;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
   .section {
-    margin-bottom: 1.75rem;
+    margin-bottom: 2.25rem;
+  }
+  .section:last-of-type {
+    margin-bottom: 0;
   }
   .section-header {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1a3a52;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 2px solid #e8e0cc;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400;
+    font-size: 1.25rem;
+    color: var(--ink);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--hairline);
+    letter-spacing: -0.005em;
   }
+
   .task {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.65rem 0.5rem;
-    border-radius: 4px;
+    gap: 0.9rem;
+    padding: 0.7rem 0.5rem;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.18s ease;
   }
   .task:hover {
-    background: #f5f1e8;
+    background: var(--subtle);
   }
-  .task input[type="checkbox"] {
-    margin-top: 0.2rem;
+
+  .checkbox {
+    position: relative;
+    flex-shrink: 0;
     width: 18px;
     height: 18px;
+    margin-top: 0.15rem;
+  }
+  .task input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
     cursor: pointer;
-    accent-color: #c9a14a;
-    flex-shrink: 0;
   }
-  .task-number {
-    color: #a89b7e;
-    font-weight: 600;
-    min-width: 1.5rem;
-    font-variant-numeric: tabular-nums;
+  .checkbox-visual {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--faint);
+    border-radius: 50%;
+    background: var(--surface);
+    transition: all 0.2s ease;
   }
+  .checkbox-visual::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 3px;
+    width: 10px;
+    height: 5px;
+    border-left: 1.5px solid var(--surface);
+    border-bottom: 1.5px solid var(--surface);
+    transform: rotate(-45deg) scale(0);
+    transition: transform 0.2s ease;
+  }
+  .task:hover .checkbox-visual {
+    border-color: var(--ink);
+  }
+  .task input[type="checkbox"]:checked + .checkbox-visual {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .task input[type="checkbox"]:checked + .checkbox-visual::after {
+    transform: rotate(-45deg) scale(1);
+  }
+
   .task-text {
     flex: 1;
-    line-height: 1.4;
+    font-weight: 300;
+    font-size: 0.975rem;
+    color: var(--ink);
+    line-height: 1.45;
+    transition: color 0.2s ease;
   }
-  .task.done .task-text,
-  .task.done .task-number {
+  .task.done .task-text {
+    color: var(--faint);
     text-decoration: line-through;
-    color: #a89b7e;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--faint);
   }
+
+  .note {
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--muted);
+    margin-left: 0.35rem;
+    font-weight: 300;
+  }
+
   .task-text a {
-    color: #1a3a52;
+    color: var(--ink);
     text-decoration: underline;
-    text-decoration-color: #c9a14a;
-    text-underline-offset: 2px;
-    font-weight: 500;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--muted);
+    font-weight: 400;
+    transition: text-decoration-color 0.15s ease;
   }
   .task-text a:hover {
-    color: #c9a14a;
+    text-decoration-color: var(--ink);
   }
   .task.done .task-text a {
-    color: #a89b7e;
-    text-decoration-color: #a89b7e;
+    color: var(--faint);
+    text-decoration-color: var(--faint);
   }
-  .note {
-    font-size: 0.8rem;
-    color: #7a7264;
-    font-style: italic;
-    margin-left: 0.4rem;
+
+  .footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    justify-content: center;
   }
   .reset-btn {
-    margin-top: 1.5rem;
     background: transparent;
-    border: 1px solid #d9d2bf;
-    color: #7a7264;
+    border: none;
+    color: var(--faint);
     padding: 0.5rem 1rem;
-    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.15s;
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
   }
   .reset-btn:hover {
-    background: #f5f1e8;
-    color: #2c2c2c;
-  }
-  .footer {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e8e0cc;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .stats {
-    font-size: 0.85rem;
-    color: #7a7264;
+    color: var(--ink);
   }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Clay's To-Do List</h1>
-  <div class="subtitle">Updated <span id="date"></span></div>
+  <div class="header">
+    <h1>Clay&rsquo;s List</h1>
+    <div class="subtitle" id="date"></div>
+  </div>
 
-  <div class="progress-bar">
-    <div class="progress-fill" id="progress"></div>
+  <div class="progress">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+    <div class="progress-meta">
+      <span id="stats">0 / 13</span>
+      <span id="pct">0%</span>
+    </div>
   </div>
 
   <div class="section">
-    <div class="section-header">🔥 Do Today</div>
-    <label class="task"><input type="checkbox"><span class="task-number">1.</span><span class="task-text">Deposit Q.T. check</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">2.</span><span class="task-text">Ruben Hassid Claude Design tutorial</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">3.</span><span class="task-text">Prepare documents for CU meeting</span></label>
+    <div class="section-header">Do Today</div>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Deposit Q.T. check</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Ruben Hassid Claude Design tutorial</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Prepare documents for CU meeting</span></label>
   </div>
 
   <div class="section">
-    <div class="section-header">⏭️ Next week + follow-ups</div>
-    <label class="task"><input type="checkbox"><span class="task-number">4.</span><span class="task-text">Job description handoff interview</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">5.</span><span class="task-text">Clay-Mate MCP searchable dashboard</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">6.</span><span class="task-text">Review <a href="https://docs.google.com/forms/d/1dhce8ibBCnBtYm0WOzgEElm5Q6oozsLadivq3UEBdc4/edit" target="_blank" rel="noopener" onclick="event.stopPropagation()">AI Survey first draft</a>, share with Adam</span></label>
+    <div class="section-header">Next Week &amp; Follow-ups</div>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Job description handoff interview</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Clay-Mate MCP searchable dashboard</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Review <a href="https://docs.google.com/forms/d/1dhce8ibBCnBtYm0WOzgEElm5Q6oozsLadivq3UEBdc4/edit" target="_blank" rel="noopener" onclick="event.stopPropagation()">AI Survey first draft</a>, share with Adam</span></label>
   </div>
 
   <div class="section">
-    <div class="section-header">💡 Low priority</div>
-    <label class="task"><input type="checkbox"><span class="task-number">7.</span><span class="task-text">Socratic method prompt</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">8.</span><span class="task-text">Claude Design study — sites I like</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">9.</span><span class="task-text">AI Cred assessment retake</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">10.</span><span class="task-text">MagicWalk app</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">11.</span><span class="task-text">Flummoxing Flags app</span></label>
-    <label class="task"><input type="checkbox"><span class="task-number">12.</span><span class="task-text">Compare Chalkie vs. Diffit vs. Brisk</span></label>
+    <div class="section-header">Low Priority</div>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Socratic method prompt</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Claude Design study &mdash; sites I like</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">AI Cred assessment retake</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">MagicWalk app</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Flummoxing Flags app</span></label>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Compare Chalkie vs. Diffit vs. Brisk</span></label>
   </div>
 
   <div class="section">
-    <div class="section-header">🕰️ Sometime later</div>
-    <label class="task"><input type="checkbox"><span class="task-number">13.</span><span class="task-text">Change battery on mom's mower</span></label>
+    <div class="section-header">Sometime Later</div>
+    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Change battery on mom&rsquo;s mower</span></label>
   </div>
 
   <div class="footer">
-    <div class="stats" id="stats">0 of 13 complete</div>
     <button class="reset-btn" onclick="resetAll()">Reset all</button>
   </div>
 </div>
 
 <script>
-  const STORAGE_KEY = 'clay-todo-v3';
+  const STORAGE_KEY = 'clay-todo-v4';
 
   document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
   });
 
-  const tasks = document.querySelectorAll('.task');
   const checkboxes = document.querySelectorAll('.task input[type="checkbox"]');
 
   try {
@@ -216,9 +312,10 @@
   function updateProgress() {
     const total = checkboxes.length;
     const done = Array.from(checkboxes).filter(cb => cb.checked).length;
-    const pct = (done / total) * 100;
+    const pct = total ? (done / total) * 100 : 0;
     document.getElementById('progress').style.width = pct + '%';
-    document.getElementById('stats').textContent = `${done} of ${total} complete`;
+    document.getElementById('stats').textContent = `${done} / ${total}`;
+    document.getElementById('pct').textContent = `${Math.round(pct)}%`;
   }
 
   checkboxes.forEach(cb => {
