@@ -283,6 +283,164 @@
     color: var(--ink);
   }
 
+  /* ─── Drag handle ─── */
+  .drag-handle {
+    color: var(--faint);
+    cursor: grab;
+    padding: 0 0.5rem 0 0;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    font-size: 0.85rem;
+    line-height: 1;
+    letter-spacing: -0.1em;
+    user-select: none;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  .task:hover .drag-handle {
+    opacity: 1;
+  }
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+  .task.dragging {
+    opacity: 0.4;
+  }
+  .task.drop-above {
+    box-shadow: inset 0 2px 0 0 var(--ink);
+  }
+  .task.drop-below {
+    box-shadow: inset 0 -2px 0 0 var(--ink);
+  }
+
+  /* ─── Task delete (hover) ─── */
+  .task-delete {
+    opacity: 0;
+    background: transparent;
+    border: none;
+    color: var(--faint);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 0.25rem;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+  }
+  .task:hover .task-delete {
+    opacity: 1;
+  }
+  .task-delete:hover {
+    color: var(--ink);
+  }
+
+  /* ─── Add task form ─── */
+  .add-task {
+    margin-top: 3rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .add-task-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 300;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--hairline);
+    transition: border-color 0.2s ease;
+  }
+  .add-task-input:focus {
+    border-bottom-color: var(--ink);
+  }
+  .add-task-input::placeholder {
+    color: var(--faint);
+    font-style: italic;
+  }
+  .add-task-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .add-task-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .section-chip {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .section-chip:hover {
+    color: var(--ink);
+    border-color: var(--muted);
+  }
+  .section-chip.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--surface);
+  }
+  .section-chip.new {
+    border-style: dashed;
+  }
+  .add-task-submit {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 0.35rem 1.1rem;
+    color: var(--faint);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .add-task-submit:not(:disabled):hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .add-task-submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .add-task-new-section {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 0.35rem 0;
+    margin-top: 0.75rem;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .add-task-new-section:focus {
+    border-bottom-color: var(--ink);
+  }
+  .add-task-new-section::placeholder {
+    color: var(--faint);
+    font-style: italic;
+  }
+
   /* ─── Archive modal ─── */
   .archive-overlay {
     position: fixed;
@@ -489,39 +647,47 @@
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-header">Do Today</div>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Ruben Hassid Claude Design tutorial</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">$2k to Kristi Crook ($1k from her biggest and one from Mer&rsquo;s)</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Instructions for Gma and Gpa B</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">$300 to Andrea Dunlap</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Salary bands for NEA dues</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Hamburger doesn&rsquo;t work on Nikki&rsquo;s site</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Pay IRS</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Get $200 cash</span></label>
-  </div>
+  <div id="sectionsContainer"></div>
 
-  <div class="section">
-    <div class="section-header">Next Week &amp; Follow-ups</div>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Job description handoff interview</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Clay-Mate MCP searchable dashboard</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Review <a href="https://docs.google.com/forms/d/1dhce8ibBCnBtYm0WOzgEElm5Q6oozsLadivq3UEBdc4/edit" target="_blank" rel="noopener" onclick="event.stopPropagation()">AI Survey first draft</a>, share with Adam</span></label>
-  </div>
+  <!-- Seed data: consumed once by JS to populate localStorage, then ignored.
+       Edit here to change the first-run defaults (e.g., for a fresh browser). -->
+  <template id="seedTasks">
+    <section name="Do Today">
+      <task>Ruben Hassid Claude Design tutorial</task>
+      <task>$2k to Kristi Crook ($1k from her biggest and one from Mer&rsquo;s)</task>
+      <task>Instructions for Gma and Gpa B</task>
+      <task>$300 to Andrea Dunlap</task>
+      <task>Salary bands for NEA dues</task>
+      <task>Hamburger doesn&rsquo;t work on Nikki&rsquo;s site</task>
+      <task>Pay IRS</task>
+      <task>Get $200 cash</task>
+    </section>
+    <section name="Next Week &amp; Follow-ups">
+      <task>Job description handoff interview</task>
+      <task>Clay-Mate MCP searchable dashboard</task>
+      <task html>Review <a href="https://docs.google.com/forms/d/1dhce8ibBCnBtYm0WOzgEElm5Q6oozsLadivq3UEBdc4/edit" target="_blank" rel="noopener">AI Survey first draft</a>, share with Adam</task>
+    </section>
+    <section name="Low Priority">
+      <task>Socratic method prompt</task>
+      <task>Claude Design study &mdash; sites I like</task>
+      <task>AI Cred assessment retake</task>
+      <task>MagicWalk app</task>
+      <task>Flummoxing Flags app</task>
+      <task>Compare Chalkie vs. Diffit vs. Brisk</task>
+    </section>
+    <section name="Sometime Later">
+      <task>Change battery on mom&rsquo;s mower</task>
+      <task>Organize and deliver tents to Bement</task>
+    </section>
+  </template>
 
-  <div class="section">
-    <div class="section-header">Low Priority</div>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Socratic method prompt</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Claude Design study &mdash; sites I like</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">AI Cred assessment retake</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">MagicWalk app</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Flummoxing Flags app</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Compare Chalkie vs. Diffit vs. Brisk</span></label>
-  </div>
-
-  <div class="section">
-    <div class="section-header">Sometime Later</div>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Change battery on mom&rsquo;s mower</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Organize and deliver tents to Bement</span></label>
+  <div class="add-task">
+    <input type="text" class="add-task-input" id="addTaskInput" placeholder="Add a task&hellip;" />
+    <input type="text" class="add-task-new-section" id="addTaskNewSection" placeholder="New section name&hellip;" style="display:none" />
+    <div class="add-task-controls">
+      <div class="add-task-sections" id="addTaskSections"></div>
+      <button class="add-task-submit" id="addTaskSubmit" disabled>Add</button>
+    </div>
   </div>
 
   <div class="footer">
@@ -554,10 +720,34 @@
 </div>
 
 <script>
-  const STORAGE_KEY = 'clay-todo-v8';
+  /* ─────────────────────────────────────────────────────────────
+     The List — data model
+     ─────────────────────────────────────────────────────────────
+     WHY: Everything is data, not markup. Tasks are stored as a
+     single ordered array in localStorage, rendered dynamically.
+     This is what makes add / delete / drag-reorder / cross-section
+     drag all work without fighting the DOM.
+
+     KEY: clay-todo-tasks-v1
+     SHAPE: [{ id, text, section, completed, completedAt?, html? }]
+       - text: plain-text form (used for archive + display fallback)
+       - html: optional rich HTML (preserves links from seed template)
+       - order: implicit — the array order IS the display order,
+         grouped by section-of-first-occurrence.
+
+     FIRST RUN: we read the <template id="seedTasks"> block and
+     materialize it into localStorage. After that, the template is
+     ignored and the store is the source of truth.
+
+     MIGRATION: this shape is intentionally flat with ISO dates so
+     Supabase migration is a straight INSERT per row. No nested data.
+     ───────────────────────────────────────────────────────────── */
+
+  const TASKS_KEY = 'clay-todo-tasks-v1';
   const THEME_KEY = 'clay-todo-theme';
   const ARCHIVE_KEY = 'clay-todo-archive-v1';
 
+  // ─── Theme ─────────────────────────────────────────────────
   (function initTheme() {
     let theme;
     try { theme = localStorage.getItem(THEME_KEY); } catch(e) {}
@@ -566,7 +756,6 @@
     }
     document.documentElement.setAttribute('data-theme', theme);
   })();
-
   document.getElementById('themeToggle').addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
@@ -578,60 +767,290 @@
     weekday: 'long', month: 'long', day: 'numeric'
   });
 
-  const checkboxes = document.querySelectorAll('.task input[type="checkbox"]');
+  // ─── Utils ─────────────────────────────────────────────────
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    checkboxes.forEach((cb, i) => {
-      if (saved[i] !== undefined) {
-        cb.checked = saved[i];
-        cb.closest('.task').classList.toggle('done', cb.checked);
-      }
+  // ─── Task store ─────────────────────────────────────────────
+  function seedFromTemplate() {
+    const tpl = document.getElementById('seedTasks');
+    if (!tpl) return [];
+    const tasks = [];
+    tpl.content.querySelectorAll('section').forEach(sec => {
+      const name = sec.getAttribute('name') || 'Untitled';
+      sec.querySelectorAll('task').forEach(t => {
+        const isHtml = t.hasAttribute('html');
+        const raw = t.innerHTML.trim();
+        tasks.push({
+          id: genId(),
+          text: isHtml ? t.textContent.trim() : decodeEntities(raw),
+          html: isHtml ? raw : null,
+          section: decodeEntities(name),
+          completed: false
+        });
+      });
     });
-  } catch(e) {}
-
-  function saveState() {
-    const state = Array.from(checkboxes).map(cb => cb.checked);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+    return tasks;
+  }
+  function decodeEntities(s) {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = s;
+    return txt.value;
+  }
+  function loadTasks() {
+    try {
+      const raw = localStorage.getItem(TASKS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    const seeded = seedFromTemplate();
+    saveTasks(seeded);
+    return seeded;
+  }
+  function saveTasks(tasks) {
+    try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasks)); } catch(e) {}
   }
 
+  // ─── Render ────────────────────────────────────────────────
+  function render() {
+    const tasks = loadTasks();
+    const container = document.getElementById('sectionsContainer');
+
+    // Group by section, preserving order of first occurrence
+    const order = [];
+    const map = new Map();
+    for (const t of tasks) {
+      if (!map.has(t.section)) { map.set(t.section, []); order.push(t.section); }
+      map.get(t.section).push(t);
+    }
+
+    container.innerHTML = '';
+    for (const name of order) {
+      const section = document.createElement('div');
+      section.className = 'section';
+      section.dataset.section = name;
+      section.innerHTML = `<div class="section-header">${escapeHtml(name)}</div>`;
+      for (const t of map.get(name)) {
+        const label = document.createElement('label');
+        label.className = 'task' + (t.completed ? ' done' : '');
+        label.draggable = true;
+        label.dataset.id = t.id;
+        const inner = t.html ? t.html : escapeHtml(t.text);
+        label.innerHTML =
+          `<span class="drag-handle" aria-hidden="true">⋮⋮</span>` +
+          `<span class="checkbox"><input type="checkbox" ${t.completed ? 'checked' : ''}><span class="checkbox-visual"></span></span>` +
+          `<span class="task-text">${inner}</span>` +
+          `<button class="task-delete" title="Delete" aria-label="Delete task">&times;</button>`;
+        section.appendChild(label);
+      }
+      container.appendChild(section);
+    }
+
+    wireTasks();
+    renderSectionChips();
+    updateProgress();
+  }
+
+  // ─── Task interactions ──────────────────────────────────────
+  function wireTasks() {
+    document.querySelectorAll('.task').forEach(el => {
+      const id = el.dataset.id;
+      const cb = el.querySelector('input[type="checkbox"]');
+      cb.addEventListener('change', e => {
+        e.stopPropagation();
+        toggleTask(id, cb.checked);
+      });
+      const del = el.querySelector('.task-delete');
+      del.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteTask(id);
+      });
+      // Links inside tasks shouldn't bubble the click to the label
+      el.querySelectorAll('.task-text a').forEach(a => {
+        a.addEventListener('click', ev => ev.stopPropagation());
+      });
+      // Drag
+      el.addEventListener('dragstart', handleDragStart);
+      el.addEventListener('dragover', handleDragOver);
+      el.addEventListener('dragleave', handleDragLeave);
+      el.addEventListener('drop', handleDrop);
+      el.addEventListener('dragend', handleDragEnd);
+    });
+  }
+
+  function toggleTask(id, checked) {
+    const tasks = loadTasks();
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+    t.completed = checked;
+    if (checked) {
+      t.completedAt = new Date().toISOString();
+      archiveAdd(t);
+    } else {
+      archiveRemoveLatestMatch(t);
+      delete t.completedAt;
+    }
+    saveTasks(tasks);
+    // Update DOM without full re-render so the checkbox animation plays
+    const el = document.querySelector(`.task[data-id="${id}"]`);
+    if (el) el.classList.toggle('done', checked);
+    updateProgress();
+  }
+
+  function deleteTask(id) {
+    const tasks = loadTasks();
+    const idx = tasks.findIndex(x => x.id === id);
+    if (idx === -1) return;
+    tasks.splice(idx, 1);
+    saveTasks(tasks);
+    render();
+  }
+
+  // ─── Drag & drop reorder ────────────────────────────────────
+  let draggedId = null;
+  function handleDragStart(e) {
+    draggedId = this.dataset.id;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', draggedId); } catch(err) {}
+  }
+  function handleDragOver(e) {
+    if (!draggedId || draggedId === this.dataset.id) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = this.getBoundingClientRect();
+    const above = e.clientY < rect.top + rect.height / 2;
+    this.classList.toggle('drop-above', above);
+    this.classList.toggle('drop-below', !above);
+  }
+  function handleDragLeave() {
+    this.classList.remove('drop-above', 'drop-below');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    if (!draggedId || draggedId === this.dataset.id) { handleDragEnd.call(this); return; }
+    const targetId = this.dataset.id;
+    const rect = this.getBoundingClientRect();
+    const before = e.clientY < rect.top + rect.height / 2;
+    reorderTask(draggedId, targetId, before);
+    this.classList.remove('drop-above', 'drop-below');
+  }
+  function handleDragEnd() {
+    document.querySelectorAll('.dragging, .drop-above, .drop-below')
+      .forEach(el => el.classList.remove('dragging', 'drop-above', 'drop-below'));
+    draggedId = null;
+  }
+  function reorderTask(dragId, targetId, before) {
+    const tasks = loadTasks();
+    const dragIdx = tasks.findIndex(t => t.id === dragId);
+    if (dragIdx === -1) return;
+    const [dragged] = tasks.splice(dragIdx, 1);
+    const targetIdx = tasks.findIndex(t => t.id === targetId);
+    if (targetIdx === -1) return;
+    // If dropped across sections, adopt the target's section
+    dragged.section = tasks[targetIdx].section;
+    tasks.splice(before ? targetIdx : targetIdx + 1, 0, dragged);
+    saveTasks(tasks);
+    render();
+  }
+
+  // ─── Add task form ──────────────────────────────────────────
+  let pendingSection = null; // string, or '__new__'
+  function getSections() {
+    const tasks = loadTasks();
+    const seen = new Set();
+    const out = [];
+    for (const t of tasks) {
+      if (!seen.has(t.section)) { seen.add(t.section); out.push(t.section); }
+    }
+    return out;
+  }
+  function renderSectionChips() {
+    const sections = getSections();
+    if (!pendingSection || (pendingSection !== '__new__' && !sections.includes(pendingSection))) {
+      pendingSection = sections[0] || '__new__';
+    }
+    const host = document.getElementById('addTaskSections');
+    host.innerHTML = '';
+    sections.forEach(name => {
+      const b = document.createElement('button');
+      b.className = 'section-chip' + (pendingSection === name ? ' active' : '');
+      b.textContent = name;
+      b.onclick = () => { pendingSection = name; document.getElementById('addTaskNewSection').style.display = 'none'; renderSectionChips(); updateSubmitState(); };
+      host.appendChild(b);
+    });
+    const nb = document.createElement('button');
+    nb.className = 'section-chip new' + (pendingSection === '__new__' ? ' active' : '');
+    nb.textContent = '+ New';
+    nb.onclick = () => {
+      pendingSection = '__new__';
+      const ns = document.getElementById('addTaskNewSection');
+      ns.style.display = 'block';
+      renderSectionChips();
+      setTimeout(() => ns.focus(), 0);
+      updateSubmitState();
+    };
+    host.appendChild(nb);
+  }
+  function updateSubmitState() {
+    const taskVal = document.getElementById('addTaskInput').value.trim();
+    const newSecVal = document.getElementById('addTaskNewSection').value.trim();
+    const ok = taskVal && (pendingSection !== '__new__' || newSecVal);
+    document.getElementById('addTaskSubmit').disabled = !ok;
+  }
+  function submitNewTask() {
+    const input = document.getElementById('addTaskInput');
+    const newSecInput = document.getElementById('addTaskNewSection');
+    const text = input.value.trim();
+    if (!text) return;
+    let section;
+    if (pendingSection === '__new__') {
+      section = newSecInput.value.trim();
+      if (!section) return;
+    } else {
+      section = pendingSection;
+    }
+    const tasks = loadTasks();
+    tasks.push({ id: genId(), text, section, completed: false });
+    saveTasks(tasks);
+    input.value = '';
+    newSecInput.value = '';
+    newSecInput.style.display = 'none';
+    pendingSection = section; // stay on the section we just added to
+    render();
+    updateSubmitState();
+    input.focus();
+  }
+  document.getElementById('addTaskInput').addEventListener('input', updateSubmitState);
+  document.getElementById('addTaskNewSection').addEventListener('input', updateSubmitState);
+  document.getElementById('addTaskInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); submitNewTask(); }
+  });
+  document.getElementById('addTaskNewSection').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); submitNewTask(); }
+  });
+  document.getElementById('addTaskSubmit').addEventListener('click', submitNewTask);
+
+  // ─── Progress ──────────────────────────────────────────────
   function updateProgress() {
-    const total = checkboxes.length;
-    const done = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const tasks = loadTasks();
+    const total = tasks.length;
+    const done = tasks.filter(t => t.completed).length;
     const pct = total ? (done / total) * 100 : 0;
     document.getElementById('progress').style.width = pct + '%';
     document.getElementById('stats').textContent = `${done} / ${total}`;
     document.getElementById('pct').textContent = `${Math.round(pct)}%`;
   }
 
-  checkboxes.forEach(cb => {
-    cb.addEventListener('change', () => {
-      const task = cb.closest('.task');
-      task.classList.toggle('done', cb.checked);
-      if (cb.checked) {
-        archiveAdd(task);
-      } else {
-        archiveRemoveLatestMatch(task);
-      }
-      saveState();
-      updateProgress();
-    });
-  });
-
   function resetAll() {
     if (!confirm('Reset all tasks?')) return;
-    checkboxes.forEach(cb => {
-      cb.checked = false;
-      cb.closest('.task').classList.remove('done');
-    });
-    saveState();
-    updateProgress();
+    const tasks = loadTasks();
+    tasks.forEach(t => { t.completed = false; delete t.completedAt; });
+    saveTasks(tasks);
+    render();
   }
 
-  // ─── Archive ─────────────────────────────────────────────────
-  // Shape: [{ id, text, section, completedAt (ISO) }, ...]
-  // Keep this flat + ISO dates so migrating to Supabase later is a
-  // straight `INSERT` per row. No nested structures, no lossy formats.
+  // ─── Archive ────────────────────────────────────────────────
   function loadArchive() {
     try {
       const raw = localStorage.getItem(ARCHIVE_KEY);
@@ -641,30 +1060,20 @@
   function saveArchive(entries) {
     try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(entries)); } catch(e) {}
   }
-  function taskText(taskEl) {
-    return taskEl.querySelector('.task-text').textContent.trim();
-  }
-  function taskSection(taskEl) {
-    const section = taskEl.closest('.section');
-    const header = section ? section.querySelector('.section-header') : null;
-    return header ? header.textContent.trim() : '';
-  }
-  function archiveAdd(taskEl) {
+  function archiveAdd(task) {
     const entries = loadArchive();
     entries.push({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-      text: taskText(taskEl),
-      section: taskSection(taskEl),
-      completedAt: new Date().toISOString()
+      id: genId(),
+      text: task.text,
+      section: task.section,
+      completedAt: task.completedAt || new Date().toISOString()
     });
     saveArchive(entries);
   }
-  function archiveRemoveLatestMatch(taskEl) {
-    // If user unchecks immediately (misclick), peel the most recent matching entry.
-    const text = taskText(taskEl);
+  function archiveRemoveLatestMatch(task) {
     const entries = loadArchive();
     for (let i = entries.length - 1; i >= 0; i--) {
-      if (entries[i].text === text) {
+      if (entries[i].text === task.text) {
         entries.splice(i, 1);
         saveArchive(entries);
         return;
@@ -770,8 +1179,10 @@
   window.closeArchive = closeArchive;
   window.exportArchive = exportArchive;
   window.clearArchive = clearArchive;
+  window.resetAll = resetAll;
 
-  updateProgress();
+  // Initial render (must be last — depends on all handlers being defined)
+  render();
 </script>
 </body>
 </html>
