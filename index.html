@@ -264,6 +264,7 @@
     border-top: 1px solid var(--hairline);
     display: flex;
     justify-content: center;
+    gap: 2rem;
   }
   .reset-btn {
     background: transparent;
@@ -279,6 +280,185 @@
     transition: color 0.2s ease;
   }
   .reset-btn:hover {
+    color: var(--ink);
+  }
+
+  /* ─── Archive modal ─── */
+  .archive-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .archive-overlay.open {
+    display: flex;
+    opacity: 1;
+  }
+  .archive-modal {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .archive-head {
+    padding: 2rem 2.25rem 1.25rem;
+    border-bottom: 1px solid var(--hairline);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .archive-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.75rem;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .archive-summary {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 300;
+    margin-top: 0.5rem;
+  }
+  .archive-close {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    color: var(--faint);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .archive-close:hover {
+    color: var(--ink);
+    border-color: var(--muted);
+  }
+  .archive-search {
+    margin: 0 2.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .archive-search input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 0.25rem 0;
+  }
+  .archive-search input::placeholder {
+    color: var(--faint);
+  }
+  .archive-body {
+    overflow-y: auto;
+    padding: 0.5rem 2.25rem 1.5rem;
+    flex: 1;
+  }
+  .archive-day {
+    margin-top: 1.5rem;
+  }
+  .archive-day:first-child {
+    margin-top: 1rem;
+  }
+  .archive-day-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .archive-entry {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--hairline);
+    color: var(--muted);
+    font-weight: 300;
+    font-size: 0.92rem;
+  }
+  .archive-entry:last-child {
+    border-bottom: none;
+  }
+  .archive-entry-text {
+    flex: 1;
+    line-height: 1.4;
+  }
+  .archive-entry-section {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    flex-shrink: 0;
+    align-self: center;
+  }
+  .archive-empty {
+    padding: 3rem 0;
+    text-align: center;
+    color: var(--faint);
+    font-weight: 300;
+    font-size: 0.9rem;
+  }
+  .archive-foot {
+    padding: 1rem 2.25rem 1.5rem;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+  .archive-foot-count {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 300;
+  }
+  .archive-actions {
+    display: flex;
+    gap: 1.25rem;
+  }
+  .archive-action {
+    background: transparent;
+    border: none;
+    color: var(--faint);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+  .archive-action:hover {
     color: var(--ink);
   }
 </style>
@@ -311,10 +491,7 @@
 
   <div class="section">
     <div class="section-header">Do Today</div>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Deposit Q.T. check</span></label>
     <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Ruben Hassid Claude Design tutorial</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Prepare documents for CU meeting</span></label>
-    <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Order classroom supplies for next year</span></label>
     <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">$2k to Kristi Crook ($1k from her biggest and one from Mer&rsquo;s)</span></label>
     <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">Instructions for Gma and Gpa B</span></label>
     <label class="task"><span class="checkbox"><input type="checkbox"><span class="checkbox-visual"></span></span><span class="task-text">$300 to Andrea Dunlap</span></label>
@@ -348,13 +525,38 @@
   </div>
 
   <div class="footer">
+    <button class="reset-btn" onclick="openArchive()">History</button>
     <button class="reset-btn" onclick="resetAll()">Reset all</button>
   </div>
 </div>
 
+<div class="archive-overlay" id="archiveOverlay" onclick="if(event.target===this) closeArchive()">
+  <div class="archive-modal" role="dialog" aria-modal="true" aria-labelledby="archiveTitle">
+    <div class="archive-head">
+      <div>
+        <div class="archive-title" id="archiveTitle">History</div>
+        <div class="archive-summary" id="archiveSummary">&nbsp;</div>
+      </div>
+      <button class="archive-close" onclick="closeArchive()" aria-label="Close">&times;</button>
+    </div>
+    <div class="archive-search">
+      <input type="text" id="archiveSearch" placeholder="Search completed tasks…" />
+    </div>
+    <div class="archive-body" id="archiveBody"></div>
+    <div class="archive-foot">
+      <div class="archive-foot-count" id="archiveCount">0 entries</div>
+      <div class="archive-actions">
+        <button class="archive-action" onclick="exportArchive()">Export JSON</button>
+        <button class="archive-action" onclick="clearArchive()">Clear</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-  const STORAGE_KEY = 'clay-todo-v7';
+  const STORAGE_KEY = 'clay-todo-v8';
   const THEME_KEY = 'clay-todo-theme';
+  const ARCHIVE_KEY = 'clay-todo-archive-v1';
 
   (function initTheme() {
     let theme;
@@ -404,7 +606,13 @@
 
   checkboxes.forEach(cb => {
     cb.addEventListener('change', () => {
-      cb.closest('.task').classList.toggle('done', cb.checked);
+      const task = cb.closest('.task');
+      task.classList.toggle('done', cb.checked);
+      if (cb.checked) {
+        archiveAdd(task);
+      } else {
+        archiveRemoveLatestMatch(task);
+      }
       saveState();
       updateProgress();
     });
@@ -419,6 +627,149 @@
     saveState();
     updateProgress();
   }
+
+  // ─── Archive ─────────────────────────────────────────────────
+  // Shape: [{ id, text, section, completedAt (ISO) }, ...]
+  // Keep this flat + ISO dates so migrating to Supabase later is a
+  // straight `INSERT` per row. No nested structures, no lossy formats.
+  function loadArchive() {
+    try {
+      const raw = localStorage.getItem(ARCHIVE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+  }
+  function saveArchive(entries) {
+    try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(entries)); } catch(e) {}
+  }
+  function taskText(taskEl) {
+    return taskEl.querySelector('.task-text').textContent.trim();
+  }
+  function taskSection(taskEl) {
+    const section = taskEl.closest('.section');
+    const header = section ? section.querySelector('.section-header') : null;
+    return header ? header.textContent.trim() : '';
+  }
+  function archiveAdd(taskEl) {
+    const entries = loadArchive();
+    entries.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      text: taskText(taskEl),
+      section: taskSection(taskEl),
+      completedAt: new Date().toISOString()
+    });
+    saveArchive(entries);
+  }
+  function archiveRemoveLatestMatch(taskEl) {
+    // If user unchecks immediately (misclick), peel the most recent matching entry.
+    const text = taskText(taskEl);
+    const entries = loadArchive();
+    for (let i = entries.length - 1; i >= 0; i--) {
+      if (entries[i].text === text) {
+        entries.splice(i, 1);
+        saveArchive(entries);
+        return;
+      }
+    }
+  }
+
+  function formatDayLabel(iso) {
+    const d = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+    const sameDay = (a, b) => a.toDateString() === b.toDateString();
+    if (sameDay(d, today)) return 'Today';
+    if (sameDay(d, yesterday)) return 'Yesterday';
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' });
+  }
+  function dayKey(iso) {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function renderArchive() {
+    const body = document.getElementById('archiveBody');
+    const summary = document.getElementById('archiveSummary');
+    const count = document.getElementById('archiveCount');
+    const filter = document.getElementById('archiveSearch').value.trim().toLowerCase();
+
+    const entries = loadArchive()
+      .filter(e => !filter || e.text.toLowerCase().includes(filter) || (e.section || '').toLowerCase().includes(filter))
+      .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+
+    // Summary counts (always over the full archive, not filtered)
+    const all = loadArchive();
+    const now = Date.now();
+    const WEEK = 7 * 24 * 60 * 60 * 1000;
+    const thisWeek = all.filter(e => now - new Date(e.completedAt).getTime() < WEEK).length;
+    const thisMonth = all.filter(e => {
+      const d = new Date(e.completedAt);
+      const t = new Date();
+      return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth();
+    }).length;
+    summary.textContent = `${thisWeek} this week · ${thisMonth} this month · ${all.length} all-time`;
+    count.textContent = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}${filter ? ' matching' : ''}`;
+
+    if (!entries.length) {
+      body.innerHTML = `<div class="archive-empty">${filter ? 'No matches.' : 'Nothing here yet. Check a task to start your history.'}</div>`;
+      return;
+    }
+
+    // Group by day
+    const groups = new Map();
+    for (const e of entries) {
+      const k = dayKey(e.completedAt);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(e);
+    }
+
+    const escape = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let html = '';
+    for (const [, list] of groups) {
+      html += `<div class="archive-day"><div class="archive-day-label">${escape(formatDayLabel(list[0].completedAt))}</div>`;
+      for (const e of list) {
+        html += `<div class="archive-entry"><div class="archive-entry-text">${escape(e.text)}</div>${e.section ? `<div class="archive-entry-section">${escape(e.section)}</div>` : ''}</div>`;
+      }
+      html += '</div>';
+    }
+    body.innerHTML = html;
+  }
+
+  function openArchive() {
+    renderArchive();
+    document.getElementById('archiveOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('archiveSearch').focus(), 50);
+  }
+  function closeArchive() {
+    document.getElementById('archiveOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('archiveSearch').addEventListener('input', renderArchive);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeArchive();
+  });
+
+  function exportArchive() {
+    const entries = loadArchive();
+    const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `the-list-archive-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+  function clearArchive() {
+    if (!confirm('Delete all archive entries? This cannot be undone. (Tip: export first.)')) return;
+    saveArchive([]);
+    renderArchive();
+  }
+
+  // Expose for inline handlers
+  window.openArchive = openArchive;
+  window.closeArchive = closeArchive;
+  window.exportArchive = exportArchive;
+  window.clearArchive = clearArchive;
 
   updateProgress();
 </script>
