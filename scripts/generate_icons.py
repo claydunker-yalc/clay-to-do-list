@@ -6,13 +6,15 @@ cairocffi, which on this Mac hits the documented x86_64/arm64 mismatch
 from CLAUDE.md. Drawing the icon natively sidesteps the whole issue.
 
 Design:
-  - Near-black rounded square (#0a0a0a) to match app's dark-mode surface.
-    Stays readable on light home screens, blends naturally on dark ones.
-  - White checkmark (#fafafa) scaled from the same 64-unit SVG path as
-    favicon.svg so the browser tab and the home-screen icon feel related.
-  - Corners are pre-rounded. iOS will round again; Android may mask to a
-    circle — both cases still look fine because the corner area is just
-    background color.
+  - White circle (#ffffff) with a thin dark hairline border to keep the
+    icon legible against pure-white home-screen backgrounds.
+  - Near-black checkmark (#0a0a0a) scaled from the same 64-unit SVG path
+    as favicon.svg so the browser tab and the home-screen icon feel
+    related.
+  - We draw on a square PNG but fill only the inscribed circle; the four
+    corners stay transparent. iOS will mask to a rounded square and
+    Android may mask to a circle — both look clean because the only
+    filled pixels are inside the circle.
 
 Rerun:
     python3 scripts/generate_icons.py
@@ -26,9 +28,10 @@ from PIL import Image, ImageDraw
 
 # Checkmark geometry in a 64-unit canvas (matches favicon.svg)
 CHECK_POINTS = [(16, 33), (28, 45), (49, 21)]
-BG = (10, 10, 10, 255)        # --ink from CSS
-FG = (250, 250, 250, 255)     # --surface from CSS
-CORNER_RADIUS_RATIO = 0.22    # iOS-ish rounded-rect ratio
+BG = (255, 255, 255, 255)     # white circle
+FG = (10, 10, 10, 255)        # near-black checkmark (--ink)
+BORDER = (10, 10, 10, 255)    # same near-black for the circle hairline
+BORDER_RATIO = 0.015          # ~1.5/64 — thin, just enough to define edge
 STROKE_RATIO = 0.095          # matches favicon stroke weight (~7/64)
 
 OUT_DIR = Path(__file__).resolve().parent.parent
@@ -38,9 +41,15 @@ def draw_icon(size: int) -> Image.Image:
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Background
-    radius = int(size * CORNER_RADIUS_RATIO)
-    draw.rounded_rectangle([0, 0, size, size], radius=radius, fill=BG)
+    # White circle inscribed in the PNG, with a thin hairline border
+    border = max(1, int(size * BORDER_RATIO))
+    inset = border / 2
+    draw.ellipse(
+        [inset, inset, size - inset, size - inset],
+        fill=BG,
+        outline=BORDER,
+        width=border,
+    )
 
     # Checkmark
     scale = size / 64
