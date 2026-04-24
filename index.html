@@ -2,9 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The List</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<!-- PWA: install to home screen -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<!-- iOS specifics (iOS doesn't fully read the manifest, needs these) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="The List">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Allow notch/safe-area so the app can paint edge-to-edge on phones -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -42,9 +53,14 @@
     line-height: 1.5;
     background: var(--bg);
     color: var(--ink);
-    padding: 4rem 1.25rem 6rem;
+    padding: calc(4rem + env(safe-area-inset-top)) calc(1.25rem + env(safe-area-inset-right)) calc(6rem + env(safe-area-inset-bottom)) calc(1.25rem + env(safe-area-inset-left));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  /* When launched from the home screen on iOS, give content a bit more
+     breathing room at the top since there's no browser chrome. */
+  @media (display-mode: standalone) {
+    body { padding-top: calc(2.5rem + env(safe-area-inset-top)); }
   }
   .container {
     position: relative;
@@ -1183,6 +1199,17 @@
 
   // Initial render (must be last — depends on all handlers being defined)
   render();
+
+  // ─── Service worker registration ───────────────────────────
+  // Gated on 'serviceWorker' in navigator so file:// previews don't throw.
+  // Only registers on http(s) origins (not file://) to avoid dev-mode errors.
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => {
+        console.warn('SW registration failed:', err);
+      });
+    });
+  }
 </script>
 </body>
 </html>
