@@ -173,6 +173,35 @@
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--hairline);
     letter-spacing: -0.005em;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    cursor: grab;
+    user-select: none;
+  }
+  .section-header:active {
+    cursor: grabbing;
+  }
+  .section-header .section-drag-handle {
+    color: var(--faint);
+    font-size: 0.8rem;
+    letter-spacing: -0.1em;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    line-height: 1;
+    transform: translateY(-2px);
+  }
+  .section:hover .section-header .section-drag-handle {
+    opacity: 1;
+  }
+  .section.section-dragging {
+    opacity: 0.4;
+  }
+  .section.section-drop-above > .section-header {
+    box-shadow: inset 0 2px 0 0 var(--ink);
+  }
+  .section.section-drop-below {
+    box-shadow: inset 0 -2px 0 0 var(--ink);
   }
 
   .task {
@@ -1009,6 +1038,7 @@ const state = {
   archive: [],
   pendingSection: null,
   draggedId: null,
+  draggedSection: null,
 };
 
 // ─── Utils ──────────────────────────────────────────────────
@@ -1289,7 +1319,7 @@ async function refreshFromDb() {
   setSyncState('active');
   try {
     let [tasksRes, archiveRes] = await Promise.all([
-      supabase.from('thelist_tasks').select('*').order('section').order('position'),
+      supabase.from('thelist_tasks').select('*').order('section_order', { nullsFirst: false }).order('section').order('position'),
       supabase.from('thelist_archive').select('*').order('completed_at', { ascending: false })
     ]);
     if (tasksRes.error) throw tasksRes.error;
@@ -1299,7 +1329,7 @@ async function refreshFromDb() {
     if (!tasksRes.data.length && !localStorage.getItem(MIGRATION_FLAG)) {
       const seeded = await maybeSeedFirstRun();
       if (seeded) {
-        const res = await supabase.from('thelist_tasks').select('*').order('section').order('position');
+        const res = await supabase.from('thelist_tasks').select('*').order('section_order', { nullsFirst: false }).order('section').order('position');
         if (!res.error) tasksRes = res;
         try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
       }
@@ -1322,7 +1352,16 @@ async function refreshFromDb() {
 async function dbAddTask({ text, html = null, section }) {
   const inSection = state.tasks.filter(t => t.section === section);
   const position = inSection.length ? Math.max(...inSection.map(t => t.position)) + 1 : 0;
-  const row = { user_id: state.user.id, text, html, section, position, completed: false };
+  // If section already exists, inherit its section_order. Otherwise assign the
+  // next available slot (max + 10) so the new section lands at the bottom.
+  let section_order;
+  if (inSection.length && inSection[0].section_order != null) {
+    section_order = inSection[0].section_order;
+  } else {
+    const maxSo = state.tasks.reduce((m, t) => Math.max(m, t.section_order || 0), 0);
+    section_order = maxSo + 10;
+  }
+  const row = { user_id: state.user.id, text, html, section, position, section_order, completed: false };
   const tempId = 'temp_' + genId();
   state.tasks.push({ ...row, id: tempId, created_at: nowIso(), updated_at: nowIso(), completed_at: null });
   render();
@@ -1406,7 +1445,11 @@ async function dbReorderTask(dragId, targetId, before) {
   const [dragged] = state.tasks.splice(dragIdx, 1);
   const newTargetIdx = state.tasks.findIndex(t => t.id === targetId);
   const originalSection = dragged.section;
-  dragged.section = state.tasks[newTargetIdx].section;
+  const targetSection = state.tasks[newTargetIdx].section;
+  dragged.section = targetSection;
+  // Moving across sections: inherit the destination section's section_order
+  // so the task renders with its new group.
+  dragged.section_order = state.tasks[newTargetIdx].section_order ?? dragged.section_order;
   state.tasks.splice(before ? newTargetIdx : newTargetIdx + 1, 0, dragged);
 
   // Recompute positions in both old and new sections
@@ -1416,10 +1459,10 @@ async function dbReorderTask(dragId, targetId, before) {
     let pos = 0;
     for (const t of state.tasks) {
       if (t.section === sec) {
-        if (t.position !== pos) { t.position = pos; updates.push({ id: t.id, position: pos, section: sec }); }
+        if (t.position !== pos) { t.position = pos; updates.push({ id: t.id, position: pos, section: sec, section_order: t.section_order }); }
         else if (t.id === dragged.id && originalSection !== dragged.section) {
           // section changed even if position didn't
-          updates.push({ id: t.id, position: pos, section: sec });
+          updates.push({ id: t.id, position: pos, section: sec, section_order: t.section_order });
         }
         pos++;
       }
@@ -1430,13 +1473,59 @@ async function dbReorderTask(dragId, targetId, before) {
 
   try {
     await Promise.all(updates.map(u => {
-      const patch = { position: u.position, section: u.section, updated_at: nowIso() };
+      const patch = { position: u.position, section: u.section, section_order: u.section_order, updated_at: nowIso() };
       return supabase.from('thelist_tasks').update(patch).eq('id', u.id);
     }));
     saveCache(TASKS_CACHE, state.tasks);
   } catch (err) {
     toast('Reorder save failed', { error: true });
     await refreshFromDb();
+  }
+}
+
+// ─── Section reorder ────────────────────────────────────────
+// Reorders whole groups. Strategy: compute a fresh section_order sequence
+// (10, 20, 30, ...) reflecting the new order, apply it optimistically in
+// memory, then write one UPDATE per section (patches all tasks in that
+// section via .eq('section', name)). Simple and idempotent — if the
+// same section is "moved to where it already is", no-ops.
+async function dbReorderSection(fromName, toName, before) {
+  if (fromName === toName) return;
+  const order = getSections();
+  const fromIdx = order.indexOf(fromName);
+  if (fromIdx < 0) return;
+  order.splice(fromIdx, 1);
+  let toIdx = order.indexOf(toName);
+  if (toIdx < 0) return;
+  if (!before) toIdx += 1;
+  order.splice(toIdx, 0, fromName);
+
+  const newOrder = new Map(order.map((name, i) => [name, (i + 1) * 10]));
+  const previous = new Map(state.tasks.map(t => [t.id, t.section_order]));
+  for (const t of state.tasks) {
+    const so = newOrder.get(t.section);
+    if (so != null) t.section_order = so;
+  }
+  render();
+
+  try {
+    // One UPDATE per section — affects all that section's tasks server-side.
+    for (const [name, so] of newOrder) {
+      const { error } = await supabase
+        .from('thelist_tasks')
+        .update({ section_order: so, updated_at: nowIso() })
+        .eq('user_id', state.user.id)
+        .eq('section', name);
+      if (error) throw error;
+    }
+    saveCache(TASKS_CACHE, state.tasks);
+  } catch (err) {
+    // Roll back in-memory state on failure
+    for (const t of state.tasks) {
+      if (previous.has(t.id)) t.section_order = previous.get(t.id);
+    }
+    render();
+    toast('Section reorder failed: ' + (err.message || err), { error: true });
   }
 }
 
@@ -1479,17 +1568,31 @@ async function dbResetAll() {
 }
 
 // ─── Render ─────────────────────────────────────────────────
+// Section ordering: tasks carry a `section_order` integer (all tasks in the
+// same section share the same value). We sort by (section_order, section,
+// position), then walk the result to derive section order. Tasks without
+// section_order fall back to alpha order via a large sentinel.
+function sortedTasks() {
+  return [...state.tasks].sort((a, b) => {
+    const ao = a.section_order != null ? a.section_order : 1e9;
+    const bo = b.section_order != null ? b.section_order : 1e9;
+    if (ao !== bo) return ao - bo;
+    const ac = (a.section || '').localeCompare(b.section || '');
+    if (ac !== 0) return ac;
+    return (a.position || 0) - (b.position || 0);
+  });
+}
 function getSections() {
   const seen = new Set();
   const out = [];
-  for (const t of state.tasks) {
+  for (const t of sortedTasks()) {
     if (!seen.has(t.section)) { seen.add(t.section); out.push(t.section); }
   }
   return out;
 }
 
 function render() {
-  const tasks = [...state.tasks];
+  const tasks = sortedTasks();
   const sectionOrder = [];
   const seen = new Set();
   for (const t of tasks) {
@@ -1505,7 +1608,8 @@ function render() {
     const section = document.createElement('div');
     section.className = 'section';
     section.dataset.section = name;
-    section.innerHTML = `<div class="section-header">${escapeHtml(name)}</div>`;
+    section.draggable = true;
+    section.innerHTML = `<div class="section-header"><span>${escapeHtml(name)}</span><span class="section-drag-handle" aria-hidden="true">⋮⋮</span></div>`;
     for (const t of grouped.get(name)) {
       const label = document.createElement('label');
       label.className = 'task' + (t.completed ? ' done' : '');
@@ -1522,6 +1626,7 @@ function render() {
     container.appendChild(section);
   }
   wireTasks();
+  wireSections();
   renderSectionChips();
   updateProgress();
 }
@@ -1542,7 +1647,25 @@ function wireTasks() {
   });
 }
 
+// Section-level drag: both .section and .task are `draggable`. The browser
+// starts the drag on the innermost draggable ancestor, so mousedown on a task
+// starts a task drag; mousedown on the section header starts a section drag.
+// But drag events bubble, so we stopPropagation in the task handlers to keep
+// the two systems from cross-talking (and `state.draggedId` vs
+// `state.draggedSection` keeps the drop targets from reacting to the wrong
+// drag).
+function wireSections() {
+  document.querySelectorAll('.section').forEach(el => {
+    el.addEventListener('dragstart', handleSectionDragStart);
+    el.addEventListener('dragover', handleSectionDragOver);
+    el.addEventListener('dragleave', handleSectionDragLeave);
+    el.addEventListener('drop', handleSectionDrop);
+    el.addEventListener('dragend', handleSectionDragEnd);
+  });
+}
+
 function handleDragStart(e) {
+  e.stopPropagation();
   state.draggedId = this.dataset.id;
   this.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
@@ -1551,29 +1674,71 @@ function handleDragStart(e) {
 function handleDragOver(e) {
   if (!state.draggedId || state.draggedId === this.dataset.id) return;
   e.preventDefault();
+  e.stopPropagation();
   e.dataTransfer.dropEffect = 'move';
   const rect = this.getBoundingClientRect();
   const above = e.clientY < rect.top + rect.height / 2;
   this.classList.toggle('drop-above', above);
   this.classList.toggle('drop-below', !above);
 }
-function handleDragLeave() {
+function handleDragLeave(e) {
+  e.stopPropagation();
   this.classList.remove('drop-above', 'drop-below');
 }
 function handleDrop(e) {
   e.preventDefault();
+  e.stopPropagation();
   const dragId = state.draggedId;
-  if (!dragId || dragId === this.dataset.id) { handleDragEnd.call(this); return; }
+  if (!dragId || dragId === this.dataset.id) { handleDragEnd.call(this, e); return; }
   const targetId = this.dataset.id;
   const rect = this.getBoundingClientRect();
   const before = e.clientY < rect.top + rect.height / 2;
   this.classList.remove('drop-above', 'drop-below');
   dbReorderTask(dragId, targetId, before);
 }
-function handleDragEnd() {
+function handleDragEnd(e) {
+  if (e) e.stopPropagation();
   document.querySelectorAll('.dragging, .drop-above, .drop-below')
     .forEach(el => el.classList.remove('dragging', 'drop-above', 'drop-below'));
   state.draggedId = null;
+}
+
+function handleSectionDragStart(e) {
+  // Ignore if a child task started the drag (task.dragstart already fired).
+  if (state.draggedId) return;
+  state.draggedSection = this.dataset.section;
+  this.classList.add('section-dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', 'section:' + state.draggedSection); } catch(err) {}
+}
+function handleSectionDragOver(e) {
+  if (!state.draggedSection || state.draggedSection === this.dataset.section) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const rect = this.getBoundingClientRect();
+  const above = e.clientY < rect.top + rect.height / 2;
+  this.classList.toggle('section-drop-above', above);
+  this.classList.toggle('section-drop-below', !above);
+}
+function handleSectionDragLeave() {
+  this.classList.remove('section-drop-above', 'section-drop-below');
+}
+function handleSectionDrop(e) {
+  if (!state.draggedSection) return;
+  e.preventDefault();
+  const dragged = state.draggedSection;
+  const target = this.dataset.section;
+  if (!target || target === dragged) { handleSectionDragEnd(); return; }
+  const rect = this.getBoundingClientRect();
+  const before = e.clientY < rect.top + rect.height / 2;
+  this.classList.remove('section-drop-above', 'section-drop-below');
+  handleSectionDragEnd();
+  dbReorderSection(dragged, target, before);
+}
+function handleSectionDragEnd() {
+  document.querySelectorAll('.section-dragging, .section-drop-above, .section-drop-below')
+    .forEach(el => el.classList.remove('section-dragging', 'section-drop-above', 'section-drop-below'));
+  state.draggedSection = null;
 }
 
 // ─── Add-task form ──────────────────────────────────────────
