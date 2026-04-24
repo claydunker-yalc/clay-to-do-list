@@ -132,30 +132,29 @@
 
   .progress {
     margin: 0 0 2.75rem;
-  }
-  .progress-bar {
-    height: 2px;
-    background: var(--hairline);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--ink);
-    border-radius: 2px;
-    width: 0%;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .progress-meta {
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--hairline);
     display: flex;
-    justify-content: space-between;
     align-items: baseline;
-    margin-top: 0.65rem;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .today-count {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400;
+    font-size: 2.25rem;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    transition: color 0.25s ease;
+  }
+  .today-label {
     font-size: 0.7rem;
     font-weight: 300;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--faint);
+    text-align: right;
   }
 
   .section {
@@ -902,13 +901,8 @@
   </div>
 
   <div class="progress">
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress"></div>
-    </div>
-    <div class="progress-meta">
-      <span id="stats">0 / 13</span>
-      <span id="pct">0%</span>
-    </div>
+    <span class="today-count" id="todayCount">0</span>
+    <span class="today-label" id="todayLabel">completed<br>today</span>
   </div>
 
   <div id="sectionsContainer"></div>
@@ -1805,15 +1799,38 @@ $('addTaskNewSection').addEventListener('keydown', e => { if (e.key === 'Enter')
 $('addTaskSubmit').addEventListener('click', submitNewTask);
 $('clearCompletedBtn').addEventListener('click', dbClearCompleted);
 
-// ─── Progress ──────────────────────────────────────────────
-function updateProgress() {
-  const total = state.tasks.length;
-  const done = state.tasks.filter(t => t.completed).length;
-  const pct = total ? (done / total) * 100 : 0;
-  $('progress').style.width = pct + '%';
-  $('stats').textContent = `${done} / ${total}`;
-  $('pct').textContent = `${Math.round(pct)}%`;
+// ─── Progress (today-counter) ──────────────────────────────
+//
+// Source of truth: the archive table. Every task check-off inserts a row
+// with completed_at = now; uncheck deletes that row. So "number completed
+// today" = archive rows whose completed_at falls on today's calendar date
+// in America/Chicago (CST/CDT).
+//
+// We use Intl.DateTimeFormat with the en-CA locale because it returns
+// YYYY-MM-DD — perfect for string equality without parsing. Works across
+// DST transitions automatically (the browser handles the offset).
+//
+// AUTO-RESET AT MIDNIGHT: a one-minute interval re-runs this; at the stroke
+// of midnight-CST the filter stops matching yesterday's rows and the count
+// drops to 0. No page reload required.
+const CST_DATE_FMT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Chicago',
+  year: 'numeric', month: '2-digit', day: '2-digit'
+});
+function cstDateOf(input) {
+  return CST_DATE_FMT.format(input instanceof Date ? input : new Date(input));
 }
+function updateProgress() {
+  const today = cstDateOf(new Date());
+  const count = (state.archive || []).filter(e => e.completed_at && cstDateOf(e.completed_at) === today).length;
+  const el = $('todayCount');
+  if (el) el.textContent = String(count);
+  const label = $('todayLabel');
+  if (label) label.innerHTML = count === 1 ? 'completed<br>today' : 'completed<br>today';
+}
+// Tick every minute so the counter flips to 0 at midnight-CST even if the
+// tab has been open all night.
+setInterval(() => { if (state.user) updateProgress(); }, 60_000);
 
 // ─── Archive modal ──────────────────────────────────────────
 function formatDayLabel(iso) {
