@@ -1155,6 +1155,17 @@ function saveCache(key, value) {
 }
 
 // ─── Migration (legacy localStorage → Supabase) ─────────────
+//
+// WHY THE DEDUP LOGIC: the original version only checked `if (MIGRATION_FLAG)`
+// at the start and set it at the end. That created a race window where the
+// same browser across two tabs, or desktop + mobile launching near-simultaneously
+// on first sign-in, could each see "no rows yet, no flag yet" and both upload.
+// That actually happened on 2026-04-24 — produced ~3× duplicate rows.
+//
+// THE FIX: we (1) set the flag immediately so same-browser concurrent tabs bail,
+// and (2) before inserting, fetch what's already in the DB and filter the legacy
+// payload to only rows whose (text, section) aren't already present. This makes
+// the migration idempotent — safe to run multiple times, safe across devices.
 async function maybeMigrateLegacy() {
   try { if (localStorage.getItem(MIGRATION_FLAG)) return; } catch(e) { return; }
 
@@ -1162,30 +1173,39 @@ async function maybeMigrateLegacy() {
   try { legacyTasks = JSON.parse(localStorage.getItem(LEGACY_TASKS) || '[]'); } catch(e) {}
   try { legacyArchive = JSON.parse(localStorage.getItem(LEGACY_ARCHIVE) || '[]'); } catch(e) {}
 
-  if (!legacyTasks.length && !legacyArchive.length) {
-    try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
-    return;
-  }
+  // Claim the migration slot immediately. Any concurrent tab in the same browser
+  // that runs this function now will see the flag and return early.
+  try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
 
-  // Don't upload if the user already has data in Supabase (e.g. signed in from another device first)
-  const [{ count: taskCount }, { count: archiveCount }] = await Promise.all([
-    supabase.from('thelist_tasks').select('id', { count: 'exact', head: true }),
-    supabase.from('thelist_archive').select('id', { count: 'exact', head: true }),
-  ]);
-  if ((taskCount || 0) > 0 || (archiveCount || 0) > 0) {
-    try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
-    return;
-  }
+  if (!legacyTasks.length && !legacyArchive.length) return;
 
   setSyncState('active');
   try {
+    // Fetch what's already there so we can dedupe against it (handles the
+    // cross-device race: another device already uploaded some/all of this).
+    const [existingTasksRes, existingArchiveRes] = await Promise.all([
+      supabase.from('thelist_tasks').select('text, section'),
+      supabase.from('thelist_archive').select('text, section, completed_at'),
+    ]);
+    if (existingTasksRes.error) throw existingTasksRes.error;
+    if (existingArchiveRes.error) throw existingArchiveRes.error;
+
+    const taskKey = (text, section) => `${text}\u0000${section || ''}`;
+    const archiveKey = (text, section, completedAt) => `${text}\u0000${section || ''}\u0000${completedAt || ''}`;
+    const existingTaskKeys = new Set((existingTasksRes.data || []).map(r => taskKey(r.text, r.section)));
+    const existingArchiveKeys = new Set((existingArchiveRes.data || []).map(r => archiveKey(r.text, r.section, r.completed_at)));
+
+    let uploadedTasks = 0, uploadedArchive = 0;
+
     if (legacyTasks.length) {
       const sectionPos = new Map();
-      const rows = legacyTasks.map(t => {
+      const rows = [];
+      for (const t of legacyTasks) {
         const sec = t.section || 'Untitled';
         const pos = sectionPos.get(sec) || 0;
         sectionPos.set(sec, pos + 1);
-        return {
+        if (existingTaskKeys.has(taskKey(t.text || '', sec))) continue;
+        rows.push({
           user_id: state.user.id,
           text: t.text || '',
           html: t.html || null,
@@ -1193,24 +1213,40 @@ async function maybeMigrateLegacy() {
           position: pos,
           completed: !!t.completed,
           completed_at: t.completedAt || null
-        };
-      });
-      const { error } = await supabase.from('thelist_tasks').insert(rows);
-      if (error) throw error;
+        });
+      }
+      if (rows.length) {
+        const { error } = await supabase.from('thelist_tasks').insert(rows);
+        if (error) throw error;
+        uploadedTasks = rows.length;
+      }
     }
+
     if (legacyArchive.length) {
-      const rows = legacyArchive.map(e => ({
-        user_id: state.user.id,
-        text: e.text || '',
-        section: e.section || null,
-        completed_at: e.completedAt || nowIso()
-      }));
-      const { error } = await supabase.from('thelist_archive').insert(rows);
-      if (error) throw error;
+      const rows = [];
+      for (const e of legacyArchive) {
+        const completedAt = e.completedAt || nowIso();
+        if (existingArchiveKeys.has(archiveKey(e.text || '', e.section, completedAt))) continue;
+        rows.push({
+          user_id: state.user.id,
+          text: e.text || '',
+          section: e.section || null,
+          completed_at: completedAt
+        });
+      }
+      if (rows.length) {
+        const { error } = await supabase.from('thelist_archive').insert(rows);
+        if (error) throw error;
+        uploadedArchive = rows.length;
+      }
     }
-    try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
-    toast(`Uploaded ${legacyTasks.length} tasks · ${legacyArchive.length} archive entries`);
+
+    if (uploadedTasks || uploadedArchive) {
+      toast(`Uploaded ${uploadedTasks} tasks · ${uploadedArchive} archive entries`);
+    }
   } catch (err) {
+    // Roll back the flag so a future load can retry.
+    try { localStorage.removeItem(MIGRATION_FLAG); } catch(e) {}
     toast('Migration failed: ' + (err.message || err), { error: true, duration: 6000 });
   } finally {
     setSyncState('idle');
