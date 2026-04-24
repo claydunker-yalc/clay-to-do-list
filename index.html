@@ -558,24 +558,55 @@
     box-shadow: inset 0 -2px 0 0 var(--ink);
   }
 
-  /* ─── Task delete (hover) ─── */
+  /* ─── Task edit + delete (hover) ─── */
+  .task-edit,
   .task-delete {
     opacity: 0;
     background: transparent;
     border: none;
     color: var(--faint);
     cursor: pointer;
-    font-size: 1rem;
     line-height: 1;
-    padding: 0 0.25rem;
     transition: opacity 0.15s ease, color 0.15s ease;
     flex-shrink: 0;
+  }
+  .task-edit {
+    font-size: 0.72rem;
+    padding: 0 0.15rem;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    align-self: center;
+  }
+  .task-delete {
+    font-size: 1rem;
+    padding: 0 0.25rem;
+  }
+  .task:hover .task-edit {
+    opacity: 0.55;
   }
   .task:hover .task-delete {
     opacity: 1;
   }
+  .task-edit:hover,
   .task-delete:hover {
+    opacity: 1;
     color: var(--ink);
+  }
+
+  /* Inline edit input — blends with the text it replaces */
+  .task-edit-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font: inherit;
+    color: var(--ink);
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .task.editing {
+    background: var(--subtle);
   }
 
   /* ─── Add task form ─── */
@@ -1432,6 +1463,72 @@ async function dbDeleteTask(id) {
   }
 }
 
+// Edit a task's text in place. If the row had custom html (e.g. an anchor
+// tag for the AI Survey link), editing strips it — user can re-add a link
+// later if needed. We decided this is fine because editing is rare and
+// preserving html while letting text change is more complex than it's worth.
+async function dbEditTask(id, newText) {
+  const t = state.tasks.find(x => x.id === id);
+  if (!t) return;
+  const trimmed = (newText || '').trim();
+  if (!trimmed) { toast('Task text cannot be empty', { error: true }); return; }
+  if (trimmed === t.text && !t.html) return; // no-op
+  const prev = { text: t.text, html: t.html };
+  t.text = trimmed;
+  t.html = null;
+  render();
+  try {
+    const { error } = await supabase
+      .from('thelist_tasks')
+      .update({ text: trimmed, html: null, updated_at: nowIso() })
+      .eq('id', id);
+    if (error) throw error;
+    saveCache(TASKS_CACHE, state.tasks);
+  } catch (err) {
+    t.text = prev.text; t.html = prev.html;
+    render();
+    toast('Edit failed: ' + (err.message || err), { error: true });
+  }
+}
+
+// Swap the task-text span for an inline input, preserve keyboard flow.
+// Enter saves; Esc or blur-after-no-change cancels; blur-with-change saves.
+function beginTaskEdit(taskEl, id) {
+  if (taskEl.classList.contains('editing')) return;
+  const t = state.tasks.find(x => x.id === id);
+  if (!t) return;
+  const textSpan = taskEl.querySelector('.task-text');
+  if (!textSpan) return;
+  taskEl.classList.add('editing');
+  taskEl.draggable = false; // avoid interference while typing
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'task-edit-input';
+  input.value = t.text;
+  textSpan.replaceWith(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  const commit = (save) => {
+    if (committed) return;
+    committed = true;
+    if (save && input.value.trim() && input.value.trim() !== t.text) {
+      dbEditTask(id, input.value); // render() will rebuild the row
+    } else {
+      render(); // restore original
+    }
+  };
+  input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); commit(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); commit(false); }
+  });
+  input.addEventListener('blur', () => commit(true));
+  input.addEventListener('click', (e) => e.stopPropagation()); // don't toggle checkbox
+}
+
 async function dbReorderTask(dragId, targetId, before) {
   const dragIdx = state.tasks.findIndex(t => t.id === dragId);
   const targetIdx = state.tasks.findIndex(t => t.id === targetId);
@@ -1615,6 +1712,7 @@ function render() {
         `<span class="drag-handle" aria-hidden="true">⋮⋮</span>` +
         `<span class="checkbox"><input type="checkbox" ${t.completed ? 'checked' : ''}><span class="checkbox-visual"></span></span>` +
         `<span class="task-text">${inner}</span>` +
+        `<button class="task-edit" type="button" title="Edit" aria-label="Edit task">edit</button>` +
         `<button class="task-delete" type="button" title="Delete" aria-label="Delete task">&times;</button>`;
       section.appendChild(label);
     }
@@ -1633,6 +1731,8 @@ function wireTasks() {
     cb.addEventListener('change', (e) => { e.stopPropagation(); dbToggleTask(id, cb.checked); });
     const del = el.querySelector('.task-delete');
     del.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); dbDeleteTask(id); });
+    const edit = el.querySelector('.task-edit');
+    if (edit) edit.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); beginTaskEdit(el, id); });
     el.querySelectorAll('.task-text a').forEach(a => a.addEventListener('click', (ev) => ev.stopPropagation()));
     el.addEventListener('dragstart', handleDragStart);
     el.addEventListener('dragover', handleDragOver);
