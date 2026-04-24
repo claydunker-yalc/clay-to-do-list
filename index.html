@@ -298,6 +298,206 @@
   .reset-btn:hover {
     color: var(--ink);
   }
+  .account-row {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    color: var(--faint);
+  }
+  .account-row .account-email {
+    color: var(--muted);
+  }
+  .account-row .account-sep {
+    margin: 0 0.6rem;
+    opacity: 0.4;
+  }
+  .account-row .signout-btn {
+    background: transparent;
+    border: none;
+    color: var(--faint);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    padding: 0;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
+  }
+  .account-row .signout-btn:hover {
+    color: var(--ink);
+  }
+
+  /* ─── Sign-in screen ─── */
+  .signin-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    z-index: 200;
+  }
+  .signin-screen.open {
+    display: flex;
+  }
+  .signin-card {
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+  .signin-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 3rem;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .signin-subtitle {
+    font-size: 0.72rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--faint);
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+  }
+  .signin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .signin-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--hairline);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 300;
+    padding: 0.6rem 0;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.2s ease;
+  }
+  .signin-input:focus {
+    border-bottom-color: var(--ink);
+  }
+  .signin-input::placeholder {
+    color: var(--faint);
+    font-style: italic;
+  }
+  .signin-submit {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    border-radius: 999px;
+    padding: 0.85rem 1.5rem;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+  .signin-submit:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+  .signin-submit:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .signin-msg {
+    margin-top: 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+  .signin-msg.error {
+    color: #c0392b;
+  }
+  :root[data-theme="dark"] .signin-msg.error {
+    color: #e67e68;
+  }
+
+  /* ─── Toast ─── */
+  .toast-stack {
+    position: fixed;
+    bottom: calc(2rem + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    pointer-events: none;
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+  }
+  .toast {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0.7rem 1.25rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: auto;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .toast.error {
+    background: #c0392b;
+    color: #fff;
+  }
+
+  /* ─── Sync indicator ─── */
+  .sync-indicator {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--faint);
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.3s ease;
+  }
+  .sync-indicator.active {
+    opacity: 0.6;
+    background: var(--muted);
+    animation: syncPulse 1s ease-in-out infinite;
+  }
+  .sync-indicator.offline {
+    opacity: 1;
+    background: #c0392b;
+  }
+  @keyframes syncPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  /* Hide app body until auth is resolved to avoid flash */
+  #appRoot {
+    visibility: hidden;
+  }
+  #appRoot.ready {
+    visibility: visible;
+  }
 
   /* ─── Drag handle ─── */
   .drag-handle {
@@ -638,7 +838,26 @@
 </style>
 </head>
 <body>
+
+<!-- Sign-in screen: shown when no Supabase session is active. -->
+<div class="signin-screen" id="signinScreen" role="dialog" aria-modal="true" aria-labelledby="signinTitle">
+  <div class="signin-card">
+    <div class="signin-title" id="signinTitle">The List</div>
+    <div class="signin-subtitle">Sync across devices</div>
+    <form class="signin-form" id="signinForm" autocomplete="on">
+      <input class="signin-input" id="signinEmail" type="email" name="email" placeholder="you@example.com" required inputmode="email" autocapitalize="off" autocorrect="off" autocomplete="email" />
+      <button class="signin-submit" id="signinSubmit" type="submit">Send magic link</button>
+    </form>
+    <div class="signin-msg" id="signinMsg">&nbsp;</div>
+  </div>
+</div>
+
+<!-- Toast stack (global, lives outside #appRoot so it can render during auth/loading) -->
+<div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+<div id="appRoot">
 <div class="container">
+  <div class="sync-indicator" id="syncIndicator" title="Sync status" aria-hidden="true"></div>
   <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
     <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="4"/>
@@ -707,10 +926,18 @@
   </div>
 
   <div class="footer">
+    <button class="reset-btn" id="clearCompletedBtn" type="button">Clear completed</button>
     <button class="reset-btn" onclick="openArchive()">History</button>
     <button class="reset-btn" onclick="resetAll()">Reset all</button>
   </div>
+
+  <div class="account-row" id="accountRow" style="display:none">
+    <span class="account-email" id="accountEmail"></span>
+    <span class="account-sep">·</span>
+    <button class="signout-btn" id="signoutBtn" type="button">Sign out</button>
+  </div>
 </div>
+</div> <!-- /#appRoot -->
 
 <div class="archive-overlay" id="archiveOverlay" onclick="if(event.target===this) closeArchive()">
   <div class="archive-modal" role="dialog" aria-modal="true" aria-labelledby="archiveTitle">
@@ -735,481 +962,787 @@
   </div>
 </div>
 
-<script>
-  /* ─────────────────────────────────────────────────────────────
-     The List — data model
-     ─────────────────────────────────────────────────────────────
-     WHY: Everything is data, not markup. Tasks are stored as a
-     single ordered array in localStorage, rendered dynamically.
-     This is what makes add / delete / drag-reorder / cross-section
-     drag all work without fighting the DOM.
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-     KEY: clay-todo-tasks-v1
-     SHAPE: [{ id, text, section, completed, completedAt?, html? }]
-       - text: plain-text form (used for archive + display fallback)
-       - html: optional rich HTML (preserves links from seed template)
-       - order: implicit — the array order IS the display order,
-         grouped by section-of-first-occurrence.
+/* ─────────────────────────────────────────────────────────────
+   The List — Supabase-backed data layer
+   ─────────────────────────────────────────────────────────────
+   Source of truth: Supabase (thelist_tasks, thelist_archive).
+   In-memory `state` mirrors the DB and drives rendering.
+   localStorage is a read-through cache so the app paints fast
+   and shows stale-but-useful data when offline.
 
-     FIRST RUN: we read the <template id="seedTasks"> block and
-     materialize it into localStorage. After that, the template is
-     ignored and the store is the source of truth.
+   Mutation flow (add/check/delete/reorder):
+     1. Update in-memory state + re-render immediately (optimistic)
+     2. Write to Supabase
+     3. On failure: revert and toast
 
-     MIGRATION: this shape is intentionally flat with ISO dates so
-     Supabase migration is a straight INSERT per row. No nested data.
-     ───────────────────────────────────────────────────────────── */
+   Cross-device sync: "refetch on focus." When the page becomes
+   visible, pull fresh data. Simpler than realtime subscriptions
+   and works fine for a single-user app.
 
-  const TASKS_KEY = 'clay-todo-tasks-v1';
-  const THEME_KEY = 'clay-todo-theme';
-  const ARCHIVE_KEY = 'clay-todo-archive-v1';
+   WHAT BREAKS IF: the anon key or URL in config.js is wrong →
+   silent auth failures. RLS is disabled → data leaks across users.
+   Magic-link redirect URL isn't whitelisted in Supabase Auth →
+   the sign-in email link won't authenticate.
 
-  // ─── Theme ─────────────────────────────────────────────────
-  (function initTheme() {
-    let theme;
-    try { theme = localStorage.getItem(THEME_KEY); } catch(e) {}
-    if (!theme) {
-      theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+   Storage keys:
+     TASKS_CACHE / ARCHIVE_CACHE — local snapshots for offline
+     THEME_KEY — light/dark preference
+     MIGRATION_FLAG — set once after legacy→cloud upload
+   ───────────────────────────────────────────────────────────── */
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const THEME_KEY = 'clay-todo-theme';
+const TASKS_CACHE = 'thelist-cache-tasks-v1';
+const ARCHIVE_CACHE = 'thelist-cache-archive-v1';
+const LEGACY_TASKS = 'clay-todo-tasks-v1';
+const LEGACY_ARCHIVE = 'clay-todo-archive-v1';
+const MIGRATION_FLAG = 'thelist-migrated-v1';
+
+const state = {
+  user: null,
+  tasks: [],
+  archive: [],
+  pendingSection: null,
+  draggedId: null,
+};
+
+// ─── Utils ──────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const decodeEntities = (s) => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
+const nowIso = () => new Date().toISOString();
+
+function toast(message, { error = false, duration = 3000 } = {}) {
+  const stack = $('toastStack');
+  const el = document.createElement('div');
+  el.className = 'toast' + (error ? ' error' : '');
+  el.textContent = message;
+  stack.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 250);
+  }, duration);
+}
+
+function setSyncState(mode) {
+  const el = $('syncIndicator');
+  if (!el) return;
+  el.classList.remove('active', 'offline');
+  if (mode === 'active') el.classList.add('active');
+  else if (mode === 'offline') el.classList.add('offline');
+}
+
+// ─── Theme ─────────────────────────────────────────────────
+(function initTheme() {
+  let theme;
+  try { theme = localStorage.getItem(THEME_KEY); } catch(e) {}
+  if (!theme) {
+    theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+$('themeToggle').addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
+});
+
+$('date').textContent = new Date().toLocaleDateString('en-US', {
+  weekday: 'long', month: 'long', day: 'numeric'
+});
+
+// ─── Auth ───────────────────────────────────────────────────
+async function init() {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) onSignedIn(session);
+    else if (event === 'SIGNED_OUT') onSignedOut();
+  });
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    await onSignedIn(session);
+  } else {
+    showSignIn();
+  }
+}
+
+function showSignIn() {
+  state.user = null;
+  $('appRoot').classList.remove('ready');
+  $('signinScreen').classList.add('open');
+  $('accountRow').style.display = 'none';
+  setTimeout(() => $('signinEmail').focus(), 50);
+}
+
+async function onSignedIn(session) {
+  state.user = { id: session.user.id, email: session.user.email };
+  $('signinScreen').classList.remove('open');
+  $('accountEmail').textContent = state.user.email;
+  $('accountRow').style.display = 'block';
+
+  if (location.hash && location.hash.includes('access_token')) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+
+  state.tasks = loadCache(TASKS_CACHE);
+  state.archive = loadCache(ARCHIVE_CACHE);
+  render();
+  $('appRoot').classList.add('ready');
+
+  await maybeMigrateLegacy();
+  await refreshFromDb();
+}
+
+async function onSignedOut() {
+  state.user = null;
+  state.tasks = [];
+  state.archive = [];
+  try {
+    localStorage.removeItem(TASKS_CACHE);
+    localStorage.removeItem(ARCHIVE_CACHE);
+    localStorage.removeItem(MIGRATION_FLAG);
+  } catch(e) {}
+  render();
+  showSignIn();
+}
+
+$('signinForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('signinEmail').value.trim();
+  const msg = $('signinMsg');
+  const btn = $('signinSubmit');
+  if (!email) return;
+  btn.disabled = true;
+  msg.className = 'signin-msg';
+  msg.textContent = 'Sending…';
+  try {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: location.origin + location.pathname }
+    });
+    if (error) throw error;
+    msg.textContent = 'Check your email for a sign-in link.';
+  } catch (err) {
+    msg.className = 'signin-msg error';
+    msg.textContent = err.message || 'Something went wrong. Try again.';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('signoutBtn').addEventListener('click', async () => {
+  if (!confirm('Sign out of The List?')) return;
+  await supabase.auth.signOut();
+});
+
+// ─── Cache helpers ──────────────────────────────────────────
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+function saveCache(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+}
+
+// ─── Migration (legacy localStorage → Supabase) ─────────────
+async function maybeMigrateLegacy() {
+  try { if (localStorage.getItem(MIGRATION_FLAG)) return; } catch(e) { return; }
+
+  let legacyTasks = [], legacyArchive = [];
+  try { legacyTasks = JSON.parse(localStorage.getItem(LEGACY_TASKS) || '[]'); } catch(e) {}
+  try { legacyArchive = JSON.parse(localStorage.getItem(LEGACY_ARCHIVE) || '[]'); } catch(e) {}
+
+  if (!legacyTasks.length && !legacyArchive.length) {
+    try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
+    return;
+  }
+
+  // Don't upload if the user already has data in Supabase (e.g. signed in from another device first)
+  const [{ count: taskCount }, { count: archiveCount }] = await Promise.all([
+    supabase.from('thelist_tasks').select('id', { count: 'exact', head: true }),
+    supabase.from('thelist_archive').select('id', { count: 'exact', head: true }),
+  ]);
+  if ((taskCount || 0) > 0 || (archiveCount || 0) > 0) {
+    try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
+    return;
+  }
+
+  setSyncState('active');
+  try {
+    if (legacyTasks.length) {
+      const sectionPos = new Map();
+      const rows = legacyTasks.map(t => {
+        const sec = t.section || 'Untitled';
+        const pos = sectionPos.get(sec) || 0;
+        sectionPos.set(sec, pos + 1);
+        return {
+          user_id: state.user.id,
+          text: t.text || '',
+          html: t.html || null,
+          section: sec,
+          position: pos,
+          completed: !!t.completed,
+          completed_at: t.completedAt || null
+        };
+      });
+      const { error } = await supabase.from('thelist_tasks').insert(rows);
+      if (error) throw error;
     }
-    document.documentElement.setAttribute('data-theme', theme);
-  })();
-  document.getElementById('themeToggle').addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem(THEME_KEY, next); } catch(e) {}
-  });
+    if (legacyArchive.length) {
+      const rows = legacyArchive.map(e => ({
+        user_id: state.user.id,
+        text: e.text || '',
+        section: e.section || null,
+        completed_at: e.completedAt || nowIso()
+      }));
+      const { error } = await supabase.from('thelist_archive').insert(rows);
+      if (error) throw error;
+    }
+    try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
+    toast(`Uploaded ${legacyTasks.length} tasks · ${legacyArchive.length} archive entries`);
+  } catch (err) {
+    toast('Migration failed: ' + (err.message || err), { error: true, duration: 6000 });
+  } finally {
+    setSyncState('idle');
+  }
+}
 
-  document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric'
-  });
+// First-ever-user seed from <template id="seedTasks">
+async function maybeSeedFirstRun() {
+  const tpl = $('seedTasks');
+  if (!tpl) return false;
+  const { count } = await supabase.from('thelist_tasks').select('id', { count: 'exact', head: true });
+  if ((count || 0) > 0) return false;
 
-  // ─── Utils ─────────────────────────────────────────────────
-  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-
-  // ─── Task store ─────────────────────────────────────────────
-  function seedFromTemplate() {
-    const tpl = document.getElementById('seedTasks');
-    if (!tpl) return [];
-    const tasks = [];
-    tpl.content.querySelectorAll('section').forEach(sec => {
-      const name = sec.getAttribute('name') || 'Untitled';
-      sec.querySelectorAll('task').forEach(t => {
-        const isHtml = t.hasAttribute('html');
-        const raw = t.innerHTML.trim();
-        tasks.push({
-          id: genId(),
-          text: isHtml ? t.textContent.trim() : decodeEntities(raw),
-          html: isHtml ? raw : null,
-          section: decodeEntities(name),
-          completed: false
-        });
+  const rows = [];
+  tpl.content.querySelectorAll('section').forEach(sec => {
+    const name = decodeEntities(sec.getAttribute('name') || 'Untitled');
+    let pos = 0;
+    sec.querySelectorAll('task').forEach(t => {
+      const isHtml = t.hasAttribute('html');
+      const raw = t.innerHTML.trim();
+      rows.push({
+        user_id: state.user.id,
+        text: isHtml ? t.textContent.trim() : decodeEntities(raw),
+        html: isHtml ? raw : null,
+        section: name,
+        position: pos++,
+        completed: false
       });
     });
-    return tasks;
-  }
-  function decodeEntities(s) {
-    const txt = document.createElement('textarea');
-    txt.innerHTML = s;
-    return txt.value;
-  }
-  function loadTasks() {
-    try {
-      const raw = localStorage.getItem(TASKS_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch(e) {}
-    const seeded = seedFromTemplate();
-    saveTasks(seeded);
-    return seeded;
-  }
-  function saveTasks(tasks) {
-    try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasks)); } catch(e) {}
-  }
+  });
+  if (!rows.length) return false;
+  const { error } = await supabase.from('thelist_tasks').insert(rows);
+  if (error) { toast('Seed failed: ' + error.message, { error: true }); return false; }
+  return true;
+}
 
-  // ─── Render ────────────────────────────────────────────────
-  function render() {
-    const tasks = loadTasks();
-    const container = document.getElementById('sectionsContainer');
+// ─── Data layer ─────────────────────────────────────────────
+async function refreshFromDb() {
+  if (!state.user) return;
+  setSyncState('active');
+  try {
+    let [tasksRes, archiveRes] = await Promise.all([
+      supabase.from('thelist_tasks').select('*').order('section').order('position'),
+      supabase.from('thelist_archive').select('*').order('completed_at', { ascending: false })
+    ]);
+    if (tasksRes.error) throw tasksRes.error;
+    if (archiveRes.error) throw archiveRes.error;
 
-    // Group by section, preserving order of first occurrence
-    const order = [];
-    const map = new Map();
-    for (const t of tasks) {
-      if (!map.has(t.section)) { map.set(t.section, []); order.push(t.section); }
-      map.get(t.section).push(t);
-    }
-
-    container.innerHTML = '';
-    for (const name of order) {
-      const section = document.createElement('div');
-      section.className = 'section';
-      section.dataset.section = name;
-      section.innerHTML = `<div class="section-header">${escapeHtml(name)}</div>`;
-      for (const t of map.get(name)) {
-        const label = document.createElement('label');
-        label.className = 'task' + (t.completed ? ' done' : '');
-        label.draggable = true;
-        label.dataset.id = t.id;
-        const inner = t.html ? t.html : escapeHtml(t.text);
-        label.innerHTML =
-          `<span class="drag-handle" aria-hidden="true">⋮⋮</span>` +
-          `<span class="checkbox"><input type="checkbox" ${t.completed ? 'checked' : ''}><span class="checkbox-visual"></span></span>` +
-          `<span class="task-text">${inner}</span>` +
-          `<button class="task-delete" title="Delete" aria-label="Delete task">&times;</button>`;
-        section.appendChild(label);
+    // If DB is empty and migration hasn't run yet, seed from template
+    if (!tasksRes.data.length && !localStorage.getItem(MIGRATION_FLAG)) {
+      const seeded = await maybeSeedFirstRun();
+      if (seeded) {
+        const res = await supabase.from('thelist_tasks').select('*').order('section').order('position');
+        if (!res.error) tasksRes = res;
+        try { localStorage.setItem(MIGRATION_FLAG, nowIso()); } catch(e) {}
       }
-      container.appendChild(section);
     }
 
-    wireTasks();
-    renderSectionChips();
-    updateProgress();
+    state.tasks = tasksRes.data;
+    state.archive = archiveRes.data;
+    saveCache(TASKS_CACHE, state.tasks);
+    saveCache(ARCHIVE_CACHE, state.archive);
+    setSyncState('idle');
+    render();
+  } catch (err) {
+    setSyncState(navigator.onLine ? 'idle' : 'offline');
+    if (!state.tasks.length) {
+      toast('Could not reach server. ' + (err.message || ''), { error: true });
+    }
   }
+}
 
-  // ─── Task interactions ──────────────────────────────────────
-  function wireTasks() {
-    document.querySelectorAll('.task').forEach(el => {
-      const id = el.dataset.id;
-      const cb = el.querySelector('input[type="checkbox"]');
-      cb.addEventListener('change', e => {
-        e.stopPropagation();
-        toggleTask(id, cb.checked);
-      });
-      const del = el.querySelector('.task-delete');
-      del.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        deleteTask(id);
-      });
-      // Links inside tasks shouldn't bubble the click to the label
-      el.querySelectorAll('.task-text a').forEach(a => {
-        a.addEventListener('click', ev => ev.stopPropagation());
-      });
-      // Drag
-      el.addEventListener('dragstart', handleDragStart);
-      el.addEventListener('dragover', handleDragOver);
-      el.addEventListener('dragleave', handleDragLeave);
-      el.addEventListener('drop', handleDrop);
-      el.addEventListener('dragend', handleDragEnd);
-    });
+async function dbAddTask({ text, html = null, section }) {
+  const inSection = state.tasks.filter(t => t.section === section);
+  const position = inSection.length ? Math.max(...inSection.map(t => t.position)) + 1 : 0;
+  const row = { user_id: state.user.id, text, html, section, position, completed: false };
+  const tempId = 'temp_' + genId();
+  state.tasks.push({ ...row, id: tempId, created_at: nowIso(), updated_at: nowIso(), completed_at: null });
+  render();
+  try {
+    const { data, error } = await supabase.from('thelist_tasks').insert(row).select().single();
+    if (error) throw error;
+    const idx = state.tasks.findIndex(t => t.id === tempId);
+    if (idx !== -1) state.tasks[idx] = data;
+    saveCache(TASKS_CACHE, state.tasks);
+    render();
+  } catch (err) {
+    state.tasks = state.tasks.filter(t => t.id !== tempId);
+    render();
+    toast('Could not save task: ' + (err.message || err), { error: true });
   }
+}
 
-  function toggleTask(id, checked) {
-    const tasks = loadTasks();
-    const t = tasks.find(x => x.id === id);
-    if (!t) return;
-    t.completed = checked;
+async function dbToggleTask(id, checked) {
+  const t = state.tasks.find(x => x.id === id);
+  if (!t) return;
+  const prev = { completed: t.completed, completed_at: t.completed_at };
+  t.completed = checked;
+  t.completed_at = checked ? nowIso() : null;
+  const el = document.querySelector(`.task[data-id="${id}"]`);
+  if (el) el.classList.toggle('done', checked);
+  updateProgress();
+  try {
+    const { error } = await supabase
+      .from('thelist_tasks')
+      .update({ completed: t.completed, completed_at: t.completed_at, updated_at: nowIso() })
+      .eq('id', id);
+    if (error) throw error;
     if (checked) {
-      t.completedAt = new Date().toISOString();
-      archiveAdd(t);
+      const archiveRow = { user_id: state.user.id, text: t.text, section: t.section, completed_at: t.completed_at };
+      const { data, error: aerr } = await supabase.from('thelist_archive').insert(archiveRow).select().single();
+      if (!aerr && data) {
+        state.archive.unshift(data);
+        saveCache(ARCHIVE_CACHE, state.archive);
+      }
     } else {
-      archiveRemoveLatestMatch(t);
-      delete t.completedAt;
+      const match = state.archive.find(e => e.text === t.text);
+      if (match) {
+        await supabase.from('thelist_archive').delete().eq('id', match.id);
+        state.archive = state.archive.filter(e => e.id !== match.id);
+        saveCache(ARCHIVE_CACHE, state.archive);
+      }
     }
-    saveTasks(tasks);
-    // Update DOM without full re-render so the checkbox animation plays
-    const el = document.querySelector(`.task[data-id="${id}"]`);
-    if (el) el.classList.toggle('done', checked);
+    saveCache(TASKS_CACHE, state.tasks);
+  } catch (err) {
+    t.completed = prev.completed;
+    t.completed_at = prev.completed_at;
+    if (el) el.classList.toggle('done', prev.completed);
+    const cb = el && el.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = prev.completed;
     updateProgress();
+    toast('Could not update: ' + (err.message || err), { error: true });
   }
+}
 
-  function deleteTask(id) {
-    const tasks = loadTasks();
-    const idx = tasks.findIndex(x => x.id === id);
-    if (idx === -1) return;
-    tasks.splice(idx, 1);
-    saveTasks(tasks);
+async function dbDeleteTask(id) {
+  const idx = state.tasks.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  const [removed] = state.tasks.splice(idx, 1);
+  render();
+  try {
+    const { error } = await supabase.from('thelist_tasks').delete().eq('id', id);
+    if (error) throw error;
+    saveCache(TASKS_CACHE, state.tasks);
+  } catch (err) {
+    state.tasks.splice(idx, 0, removed);
     render();
+    toast('Could not delete: ' + (err.message || err), { error: true });
   }
+}
 
-  // ─── Drag & drop reorder ────────────────────────────────────
-  let draggedId = null;
-  function handleDragStart(e) {
-    draggedId = this.dataset.id;
-    this.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    try { e.dataTransfer.setData('text/plain', draggedId); } catch(err) {}
-  }
-  function handleDragOver(e) {
-    if (!draggedId || draggedId === this.dataset.id) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const rect = this.getBoundingClientRect();
-    const above = e.clientY < rect.top + rect.height / 2;
-    this.classList.toggle('drop-above', above);
-    this.classList.toggle('drop-below', !above);
-  }
-  function handleDragLeave() {
-    this.classList.remove('drop-above', 'drop-below');
-  }
-  function handleDrop(e) {
-    e.preventDefault();
-    if (!draggedId || draggedId === this.dataset.id) { handleDragEnd.call(this); return; }
-    const targetId = this.dataset.id;
-    const rect = this.getBoundingClientRect();
-    const before = e.clientY < rect.top + rect.height / 2;
-    reorderTask(draggedId, targetId, before);
-    this.classList.remove('drop-above', 'drop-below');
-  }
-  function handleDragEnd() {
-    document.querySelectorAll('.dragging, .drop-above, .drop-below')
-      .forEach(el => el.classList.remove('dragging', 'drop-above', 'drop-below'));
-    draggedId = null;
-  }
-  function reorderTask(dragId, targetId, before) {
-    const tasks = loadTasks();
-    const dragIdx = tasks.findIndex(t => t.id === dragId);
-    if (dragIdx === -1) return;
-    const [dragged] = tasks.splice(dragIdx, 1);
-    const targetIdx = tasks.findIndex(t => t.id === targetId);
-    if (targetIdx === -1) return;
-    // If dropped across sections, adopt the target's section
-    dragged.section = tasks[targetIdx].section;
-    tasks.splice(before ? targetIdx : targetIdx + 1, 0, dragged);
-    saveTasks(tasks);
-    render();
-  }
+async function dbReorderTask(dragId, targetId, before) {
+  const dragIdx = state.tasks.findIndex(t => t.id === dragId);
+  const targetIdx = state.tasks.findIndex(t => t.id === targetId);
+  if (dragIdx === -1 || targetIdx === -1) return;
 
-  // ─── Add task form ──────────────────────────────────────────
-  let pendingSection = null; // string, or '__new__'
-  function getSections() {
-    const tasks = loadTasks();
-    const seen = new Set();
-    const out = [];
-    for (const t of tasks) {
-      if (!seen.has(t.section)) { seen.add(t.section); out.push(t.section); }
-    }
-    return out;
-  }
-  function renderSectionChips() {
-    const sections = getSections();
-    if (!pendingSection || (pendingSection !== '__new__' && !sections.includes(pendingSection))) {
-      pendingSection = sections[0] || '__new__';
-    }
-    const host = document.getElementById('addTaskSections');
-    host.innerHTML = '';
-    sections.forEach(name => {
-      const b = document.createElement('button');
-      b.className = 'section-chip' + (pendingSection === name ? ' active' : '');
-      b.textContent = name;
-      b.onclick = () => { pendingSection = name; document.getElementById('addTaskNewSection').style.display = 'none'; renderSectionChips(); updateSubmitState(); };
-      host.appendChild(b);
-    });
-    const nb = document.createElement('button');
-    nb.className = 'section-chip new' + (pendingSection === '__new__' ? ' active' : '');
-    nb.textContent = '+ New';
-    nb.onclick = () => {
-      pendingSection = '__new__';
-      const ns = document.getElementById('addTaskNewSection');
-      ns.style.display = 'block';
-      renderSectionChips();
-      setTimeout(() => ns.focus(), 0);
-      updateSubmitState();
-    };
-    host.appendChild(nb);
-  }
-  function updateSubmitState() {
-    const taskVal = document.getElementById('addTaskInput').value.trim();
-    const newSecVal = document.getElementById('addTaskNewSection').value.trim();
-    const ok = taskVal && (pendingSection !== '__new__' || newSecVal);
-    document.getElementById('addTaskSubmit').disabled = !ok;
-  }
-  function submitNewTask() {
-    const input = document.getElementById('addTaskInput');
-    const newSecInput = document.getElementById('addTaskNewSection');
-    const text = input.value.trim();
-    if (!text) return;
-    let section;
-    if (pendingSection === '__new__') {
-      section = newSecInput.value.trim();
-      if (!section) return;
-    } else {
-      section = pendingSection;
-    }
-    const tasks = loadTasks();
-    tasks.push({ id: genId(), text, section, completed: false });
-    saveTasks(tasks);
-    input.value = '';
-    newSecInput.value = '';
-    newSecInput.style.display = 'none';
-    pendingSection = section; // stay on the section we just added to
-    render();
-    updateSubmitState();
-    input.focus();
-  }
-  document.getElementById('addTaskInput').addEventListener('input', updateSubmitState);
-  document.getElementById('addTaskNewSection').addEventListener('input', updateSubmitState);
-  document.getElementById('addTaskInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); submitNewTask(); }
-  });
-  document.getElementById('addTaskNewSection').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); submitNewTask(); }
-  });
-  document.getElementById('addTaskSubmit').addEventListener('click', submitNewTask);
+  const [dragged] = state.tasks.splice(dragIdx, 1);
+  const newTargetIdx = state.tasks.findIndex(t => t.id === targetId);
+  const originalSection = dragged.section;
+  dragged.section = state.tasks[newTargetIdx].section;
+  state.tasks.splice(before ? newTargetIdx : newTargetIdx + 1, 0, dragged);
 
-  // ─── Progress ──────────────────────────────────────────────
-  function updateProgress() {
-    const tasks = loadTasks();
-    const total = tasks.length;
-    const done = tasks.filter(t => t.completed).length;
-    const pct = total ? (done / total) * 100 : 0;
-    document.getElementById('progress').style.width = pct + '%';
-    document.getElementById('stats').textContent = `${done} / ${total}`;
-    document.getElementById('pct').textContent = `${Math.round(pct)}%`;
-  }
-
-  function resetAll() {
-    if (!confirm('Reset all tasks?')) return;
-    const tasks = loadTasks();
-    tasks.forEach(t => { t.completed = false; delete t.completedAt; });
-    saveTasks(tasks);
-    render();
-  }
-
-  // ─── Archive ────────────────────────────────────────────────
-  function loadArchive() {
-    try {
-      const raw = localStorage.getItem(ARCHIVE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch(e) { return []; }
-  }
-  function saveArchive(entries) {
-    try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(entries)); } catch(e) {}
-  }
-  function archiveAdd(task) {
-    const entries = loadArchive();
-    entries.push({
-      id: genId(),
-      text: task.text,
-      section: task.section,
-      completedAt: task.completedAt || new Date().toISOString()
-    });
-    saveArchive(entries);
-  }
-  function archiveRemoveLatestMatch(task) {
-    const entries = loadArchive();
-    for (let i = entries.length - 1; i >= 0; i--) {
-      if (entries[i].text === task.text) {
-        entries.splice(i, 1);
-        saveArchive(entries);
-        return;
+  // Recompute positions in both old and new sections
+  const affectedSections = new Set([originalSection, dragged.section]);
+  const updates = [];
+  for (const sec of affectedSections) {
+    let pos = 0;
+    for (const t of state.tasks) {
+      if (t.section === sec) {
+        if (t.position !== pos) { t.position = pos; updates.push({ id: t.id, position: pos, section: sec }); }
+        else if (t.id === dragged.id && originalSection !== dragged.section) {
+          // section changed even if position didn't
+          updates.push({ id: t.id, position: pos, section: sec });
+        }
+        pos++;
       }
     }
   }
 
-  function formatDayLabel(iso) {
-    const d = new Date(iso);
-    const today = new Date();
-    const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
-    const sameDay = (a, b) => a.toDateString() === b.toDateString();
-    if (sameDay(d, today)) return 'Today';
-    if (sameDay(d, yesterday)) return 'Yesterday';
-    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' });
-  }
-  function dayKey(iso) {
-    const d = new Date(iso);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }
-
-  function renderArchive() {
-    const body = document.getElementById('archiveBody');
-    const summary = document.getElementById('archiveSummary');
-    const count = document.getElementById('archiveCount');
-    const filter = document.getElementById('archiveSearch').value.trim().toLowerCase();
-
-    const entries = loadArchive()
-      .filter(e => !filter || e.text.toLowerCase().includes(filter) || (e.section || '').toLowerCase().includes(filter))
-      .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
-
-    // Summary counts (always over the full archive, not filtered)
-    const all = loadArchive();
-    const now = Date.now();
-    const WEEK = 7 * 24 * 60 * 60 * 1000;
-    const thisWeek = all.filter(e => now - new Date(e.completedAt).getTime() < WEEK).length;
-    const thisMonth = all.filter(e => {
-      const d = new Date(e.completedAt);
-      const t = new Date();
-      return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth();
-    }).length;
-    summary.textContent = `${thisWeek} this week · ${thisMonth} this month · ${all.length} all-time`;
-    count.textContent = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}${filter ? ' matching' : ''}`;
-
-    if (!entries.length) {
-      body.innerHTML = `<div class="archive-empty">${filter ? 'No matches.' : 'Nothing here yet. Check a task to start your history.'}</div>`;
-      return;
-    }
-
-    // Group by day
-    const groups = new Map();
-    for (const e of entries) {
-      const k = dayKey(e.completedAt);
-      if (!groups.has(k)) groups.set(k, []);
-      groups.get(k).push(e);
-    }
-
-    const escape = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    let html = '';
-    for (const [, list] of groups) {
-      html += `<div class="archive-day"><div class="archive-day-label">${escape(formatDayLabel(list[0].completedAt))}</div>`;
-      for (const e of list) {
-        html += `<div class="archive-entry"><div class="archive-entry-text">${escape(e.text)}</div>${e.section ? `<div class="archive-entry-section">${escape(e.section)}</div>` : ''}</div>`;
-      }
-      html += '</div>';
-    }
-    body.innerHTML = html;
-  }
-
-  function openArchive() {
-    renderArchive();
-    document.getElementById('archiveOverlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => document.getElementById('archiveSearch').focus(), 50);
-  }
-  function closeArchive() {
-    document.getElementById('archiveOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  document.getElementById('archiveSearch').addEventListener('input', renderArchive);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeArchive();
-  });
-
-  function exportArchive() {
-    const entries = loadArchive();
-    const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `the-list-archive-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-  }
-  function clearArchive() {
-    if (!confirm('Delete all archive entries? This cannot be undone. (Tip: export first.)')) return;
-    saveArchive([]);
-    renderArchive();
-  }
-
-  // Expose for inline handlers
-  window.openArchive = openArchive;
-  window.closeArchive = closeArchive;
-  window.exportArchive = exportArchive;
-  window.clearArchive = clearArchive;
-  window.resetAll = resetAll;
-
-  // Initial render (must be last — depends on all handlers being defined)
   render();
 
-  // ─── Service worker registration ───────────────────────────
-  // Gated on 'serviceWorker' in navigator so file:// previews don't throw.
-  // Only registers on http(s) origins (not file://) to avoid dev-mode errors.
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(err => {
-        console.warn('SW registration failed:', err);
-      });
-    });
+  try {
+    await Promise.all(updates.map(u => {
+      const patch = { position: u.position, section: u.section, updated_at: nowIso() };
+      return supabase.from('thelist_tasks').update(patch).eq('id', u.id);
+    }));
+    saveCache(TASKS_CACHE, state.tasks);
+  } catch (err) {
+    toast('Reorder save failed', { error: true });
+    await refreshFromDb();
   }
+}
+
+async function dbClearCompleted() {
+  const completed = state.tasks.filter(t => t.completed);
+  if (!completed.length) { toast('Nothing to clear'); return; }
+  const ids = completed.map(t => t.id);
+  const backup = [...state.tasks];
+  state.tasks = state.tasks.filter(t => !t.completed);
+  render();
+  try {
+    const { error } = await supabase.from('thelist_tasks').delete().in('id', ids);
+    if (error) throw error;
+    saveCache(TASKS_CACHE, state.tasks);
+    toast(`Cleared ${completed.length} completed`);
+  } catch (err) {
+    state.tasks = backup;
+    render();
+    toast('Clear failed: ' + (err.message || err), { error: true });
+  }
+}
+
+async function dbResetAll() {
+  if (!state.tasks.some(t => t.completed)) { toast('Nothing to reset'); return; }
+  if (!confirm('Uncheck all tasks? (Archive history is kept.)')) return;
+  const ids = state.tasks.filter(t => t.completed).map(t => t.id);
+  state.tasks.forEach(t => { if (ids.includes(t.id)) { t.completed = false; t.completed_at = null; } });
+  render();
+  try {
+    const { error } = await supabase
+      .from('thelist_tasks')
+      .update({ completed: false, completed_at: null, updated_at: nowIso() })
+      .in('id', ids);
+    if (error) throw error;
+    saveCache(TASKS_CACHE, state.tasks);
+  } catch (err) {
+    await refreshFromDb();
+    toast('Reset failed', { error: true });
+  }
+}
+
+// ─── Render ─────────────────────────────────────────────────
+function getSections() {
+  const seen = new Set();
+  const out = [];
+  for (const t of state.tasks) {
+    if (!seen.has(t.section)) { seen.add(t.section); out.push(t.section); }
+  }
+  return out;
+}
+
+function render() {
+  const tasks = [...state.tasks];
+  const sectionOrder = [];
+  const seen = new Set();
+  for (const t of tasks) {
+    if (!seen.has(t.section)) { seen.add(t.section); sectionOrder.push(t.section); }
+  }
+  const grouped = new Map(sectionOrder.map(s => [s, []]));
+  for (const t of tasks) grouped.get(t.section).push(t);
+  for (const s of sectionOrder) grouped.get(s).sort((a, b) => a.position - b.position);
+
+  const container = $('sectionsContainer');
+  container.innerHTML = '';
+  for (const name of sectionOrder) {
+    const section = document.createElement('div');
+    section.className = 'section';
+    section.dataset.section = name;
+    section.innerHTML = `<div class="section-header">${escapeHtml(name)}</div>`;
+    for (const t of grouped.get(name)) {
+      const label = document.createElement('label');
+      label.className = 'task' + (t.completed ? ' done' : '');
+      label.draggable = true;
+      label.dataset.id = t.id;
+      const inner = t.html ? t.html : escapeHtml(t.text);
+      label.innerHTML =
+        `<span class="drag-handle" aria-hidden="true">⋮⋮</span>` +
+        `<span class="checkbox"><input type="checkbox" ${t.completed ? 'checked' : ''}><span class="checkbox-visual"></span></span>` +
+        `<span class="task-text">${inner}</span>` +
+        `<button class="task-delete" type="button" title="Delete" aria-label="Delete task">&times;</button>`;
+      section.appendChild(label);
+    }
+    container.appendChild(section);
+  }
+  wireTasks();
+  renderSectionChips();
+  updateProgress();
+}
+
+function wireTasks() {
+  document.querySelectorAll('.task').forEach(el => {
+    const id = el.dataset.id;
+    const cb = el.querySelector('input[type="checkbox"]');
+    cb.addEventListener('change', (e) => { e.stopPropagation(); dbToggleTask(id, cb.checked); });
+    const del = el.querySelector('.task-delete');
+    del.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); dbDeleteTask(id); });
+    el.querySelectorAll('.task-text a').forEach(a => a.addEventListener('click', (ev) => ev.stopPropagation()));
+    el.addEventListener('dragstart', handleDragStart);
+    el.addEventListener('dragover', handleDragOver);
+    el.addEventListener('dragleave', handleDragLeave);
+    el.addEventListener('drop', handleDrop);
+    el.addEventListener('dragend', handleDragEnd);
+  });
+}
+
+function handleDragStart(e) {
+  state.draggedId = this.dataset.id;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', state.draggedId); } catch(err) {}
+}
+function handleDragOver(e) {
+  if (!state.draggedId || state.draggedId === this.dataset.id) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const rect = this.getBoundingClientRect();
+  const above = e.clientY < rect.top + rect.height / 2;
+  this.classList.toggle('drop-above', above);
+  this.classList.toggle('drop-below', !above);
+}
+function handleDragLeave() {
+  this.classList.remove('drop-above', 'drop-below');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  const dragId = state.draggedId;
+  if (!dragId || dragId === this.dataset.id) { handleDragEnd.call(this); return; }
+  const targetId = this.dataset.id;
+  const rect = this.getBoundingClientRect();
+  const before = e.clientY < rect.top + rect.height / 2;
+  this.classList.remove('drop-above', 'drop-below');
+  dbReorderTask(dragId, targetId, before);
+}
+function handleDragEnd() {
+  document.querySelectorAll('.dragging, .drop-above, .drop-below')
+    .forEach(el => el.classList.remove('dragging', 'drop-above', 'drop-below'));
+  state.draggedId = null;
+}
+
+// ─── Add-task form ──────────────────────────────────────────
+function renderSectionChips() {
+  const sections = getSections();
+  if (!state.pendingSection || (state.pendingSection !== '__new__' && !sections.includes(state.pendingSection))) {
+    state.pendingSection = sections[0] || '__new__';
+  }
+  const host = $('addTaskSections');
+  host.innerHTML = '';
+  sections.forEach(name => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'section-chip' + (state.pendingSection === name ? ' active' : '');
+    b.textContent = name;
+    b.onclick = () => {
+      state.pendingSection = name;
+      $('addTaskNewSection').style.display = 'none';
+      renderSectionChips();
+      updateSubmitState();
+    };
+    host.appendChild(b);
+  });
+  const nb = document.createElement('button');
+  nb.type = 'button';
+  nb.className = 'section-chip new' + (state.pendingSection === '__new__' ? ' active' : '');
+  nb.textContent = '+ New';
+  nb.onclick = () => {
+    state.pendingSection = '__new__';
+    const ns = $('addTaskNewSection');
+    ns.style.display = 'block';
+    renderSectionChips();
+    setTimeout(() => ns.focus(), 0);
+    updateSubmitState();
+  };
+  host.appendChild(nb);
+}
+function updateSubmitState() {
+  const taskVal = $('addTaskInput').value.trim();
+  const newSecVal = $('addTaskNewSection').value.trim();
+  const ok = taskVal && (state.pendingSection !== '__new__' || newSecVal);
+  $('addTaskSubmit').disabled = !ok;
+}
+async function submitNewTask() {
+  const input = $('addTaskInput');
+  const newSecInput = $('addTaskNewSection');
+  const text = input.value.trim();
+  if (!text) return;
+  const section = state.pendingSection === '__new__' ? newSecInput.value.trim() : state.pendingSection;
+  if (!section) return;
+  await dbAddTask({ text, section });
+  input.value = '';
+  newSecInput.value = '';
+  newSecInput.style.display = 'none';
+  state.pendingSection = section;
+  renderSectionChips();
+  updateSubmitState();
+  input.focus();
+}
+$('addTaskInput').addEventListener('input', updateSubmitState);
+$('addTaskNewSection').addEventListener('input', updateSubmitState);
+$('addTaskInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitNewTask(); } });
+$('addTaskNewSection').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitNewTask(); } });
+$('addTaskSubmit').addEventListener('click', submitNewTask);
+$('clearCompletedBtn').addEventListener('click', dbClearCompleted);
+
+// ─── Progress ──────────────────────────────────────────────
+function updateProgress() {
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t => t.completed).length;
+  const pct = total ? (done / total) * 100 : 0;
+  $('progress').style.width = pct + '%';
+  $('stats').textContent = `${done} / ${total}`;
+  $('pct').textContent = `${Math.round(pct)}%`;
+}
+
+// ─── Archive modal ──────────────────────────────────────────
+function formatDayLabel(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a, b) => a.toDateString() === b.toDateString();
+  if (sameDay(d, today)) return 'Today';
+  if (sameDay(d, yesterday)) return 'Yesterday';
+  return d.toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+    year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric'
+  });
+}
+function dayKey(iso) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function renderArchive() {
+  const body = $('archiveBody');
+  const summary = $('archiveSummary');
+  const count = $('archiveCount');
+  const filter = $('archiveSearch').value.trim().toLowerCase();
+  const filtered = state.archive
+    .filter(e => !filter || e.text.toLowerCase().includes(filter) || (e.section || '').toLowerCase().includes(filter))
+    .sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''));
+  const now = Date.now();
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+  const thisWeek = state.archive.filter(e => now - new Date(e.completed_at).getTime() < WEEK).length;
+  const thisMonth = state.archive.filter(e => {
+    const d = new Date(e.completed_at), t = new Date();
+    return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth();
+  }).length;
+  summary.textContent = `${thisWeek} this week · ${thisMonth} this month · ${state.archive.length} all-time`;
+  count.textContent = `${filtered.length} ${filtered.length === 1 ? 'entry' : 'entries'}${filter ? ' matching' : ''}`;
+  if (!filtered.length) {
+    body.innerHTML = `<div class="archive-empty">${filter ? 'No matches.' : 'Nothing here yet. Check a task to start your history.'}</div>`;
+    return;
+  }
+  const groups = new Map();
+  for (const e of filtered) {
+    const k = dayKey(e.completed_at);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(e);
+  }
+  let html = '';
+  for (const [, list] of groups) {
+    html += `<div class="archive-day"><div class="archive-day-label">${escapeHtml(formatDayLabel(list[0].completed_at))}</div>`;
+    for (const e of list) {
+      html += `<div class="archive-entry"><div class="archive-entry-text">${escapeHtml(e.text)}</div>${e.section ? `<div class="archive-entry-section">${escapeHtml(e.section)}</div>` : ''}</div>`;
+    }
+    html += '</div>';
+  }
+  body.innerHTML = html;
+}
+function openArchive() {
+  renderArchive();
+  $('archiveOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => $('archiveSearch').focus(), 50);
+}
+function closeArchive() {
+  $('archiveOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+$('archiveSearch').addEventListener('input', renderArchive);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeArchive(); });
+
+function exportArchive() {
+  const blob = new Blob([JSON.stringify(state.archive, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `the-list-archive-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+async function clearArchive() {
+  if (!confirm('Delete all archive entries? This cannot be undone.')) return;
+  const ids = state.archive.map(e => e.id);
+  if (!ids.length) return;
+  try {
+    const { error } = await supabase.from('thelist_archive').delete().in('id', ids);
+    if (error) throw error;
+    state.archive = [];
+    saveCache(ARCHIVE_CACHE, []);
+    renderArchive();
+    toast('Archive cleared');
+  } catch (err) {
+    toast('Clear failed: ' + (err.message || err), { error: true });
+  }
+}
+
+// ─── Cross-device sync (refetch on focus) ───────────────────
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && state.user) refreshFromDb();
+});
+window.addEventListener('online', () => {
+  setSyncState('idle');
+  if (state.user) refreshFromDb();
+});
+window.addEventListener('offline', () => setSyncState('offline'));
+if (!navigator.onLine) setSyncState('offline');
+
+// ─── Error boundary ────────────────────────────────────────
+window.addEventListener('error', (e) => {
+  console.error('Uncaught error:', e.error || e.message);
+  toast('Something went wrong. Check the console.', { error: true });
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Unhandled rejection:', e.reason);
+  toast('A background task failed. Check the console.', { error: true });
+});
+
+// Inline HTML handlers (archive modal close button, etc.)
+window.openArchive = openArchive;
+window.closeArchive = closeArchive;
+window.exportArchive = exportArchive;
+window.clearArchive = clearArchive;
+window.resetAll = dbResetAll;
+
+// Service worker
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW registration failed:', err));
+  });
+}
+
+// Go
+init();
 </script>
 </body>
 </html>
