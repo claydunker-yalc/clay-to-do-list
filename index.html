@@ -990,8 +990,6 @@
   <div class="account-row" id="accountRow" style="display:none">
     <span class="account-email" id="accountEmail"></span>
     <span class="account-sep">·</span>
-    <button class="signout-btn" id="setPasswordBtn" type="button">Set password</button>
-    <span class="account-sep">·</span>
     <button class="signout-btn" id="signoutBtn" type="button">Sign out</button>
   </div>
 </div>
@@ -1208,21 +1206,10 @@ $('signinForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Let a currently-authenticated user set (or rotate) their password. Uses
-// supabase.auth.updateUser — which works on the *currently signed-in* user,
-// no email confirmation round trip.
-$('setPasswordBtn').addEventListener('click', async () => {
-  const pw = prompt('New password (min 6 chars):');
-  if (!pw) return;
-  if (pw.length < 6) { toast('Password must be at least 6 characters', { error: true }); return; }
-  try {
-    const { error } = await supabase.auth.updateUser({ password: pw });
-    if (error) throw error;
-    toast('Password set. You can now sign in with email + password on any device.');
-  } catch (err) {
-    toast('Could not set password: ' + (err.message || err), { error: true, duration: 6000 });
-  }
-});
+// Future-Clay reminder: if you ever need to change your password, you can
+// do it from the Supabase dashboard (Authentication → Users → your row →
+// "Send password recovery") or briefly re-add a setPasswordBtn here and
+// call supabase.auth.updateUser({ password: ... }).
 
 $('signoutBtn').addEventListener('click', async () => {
   if (!confirm('Sign out of The List?')) return;
