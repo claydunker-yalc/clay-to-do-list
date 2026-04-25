@@ -906,7 +906,8 @@
     <div class="signin-subtitle">Sync across devices</div>
     <form class="signin-form" id="signinForm" autocomplete="on">
       <input class="signin-input" id="signinEmail" type="email" name="email" placeholder="you@example.com" required inputmode="email" autocapitalize="off" autocorrect="off" autocomplete="email" />
-      <button class="signin-submit" id="signinSubmit" type="submit">Send magic link</button>
+      <input class="signin-input" id="signinPassword" type="password" name="password" placeholder="password" required autocomplete="current-password" minlength="6" />
+      <button class="signin-submit" id="signinSubmit" type="submit">Sign in</button>
     </form>
     <div class="signin-msg" id="signinMsg">&nbsp;</div>
   </div>
@@ -988,6 +989,8 @@
 
   <div class="account-row" id="accountRow" style="display:none">
     <span class="account-email" id="accountEmail"></span>
+    <span class="account-sep">·</span>
+    <button class="signout-btn" id="setPasswordBtn" type="button">Set password</button>
     <span class="account-sep">·</span>
     <button class="signout-btn" id="signoutBtn" type="button">Sign out</button>
   </div>
@@ -1170,27 +1173,54 @@ async function onSignedOut() {
   showSignIn();
 }
 
+// Email + password sign-in. Magic links were dropped because Supabase's
+// free email sender rate-limits hard (~4/hr) and round-trips through email
+// are annoying for a personal tool.
+//
+// First-time onboarding note: the account was originally created via magic
+// link and has no password. Once signed in on any device, use "Set password"
+// in the account row to attach one. From then on, every device signs in with
+// email + password — no email round trip.
 $('signinForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = $('signinEmail').value.trim();
+  const password = $('signinPassword').value;
   const msg = $('signinMsg');
   const btn = $('signinSubmit');
-  if (!email) return;
+  if (!email || !password) return;
   btn.disabled = true;
   msg.className = 'signin-msg';
-  msg.textContent = 'Sending…';
+  msg.textContent = 'Signing in…';
   try {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: location.origin + location.pathname }
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    msg.textContent = 'Check your email for a sign-in link.';
+    msg.textContent = '';
   } catch (err) {
     msg.className = 'signin-msg error';
-    msg.textContent = err.message || 'Something went wrong. Try again.';
+    const raw = (err && (err.message || err.error_description || '')) || 'Sign-in failed.';
+    if (/invalid login/i.test(raw)) {
+      msg.textContent = 'Wrong email or password. (If this is your first sign-in after the switch from magic links, use the old magic-link session on your desktop first and click "Set password" there.)';
+    } else {
+      msg.textContent = raw;
+    }
   } finally {
     btn.disabled = false;
+  }
+});
+
+// Let a currently-authenticated user set (or rotate) their password. Uses
+// supabase.auth.updateUser — which works on the *currently signed-in* user,
+// no email confirmation round trip.
+$('setPasswordBtn').addEventListener('click', async () => {
+  const pw = prompt('New password (min 6 chars):');
+  if (!pw) return;
+  if (pw.length < 6) { toast('Password must be at least 6 characters', { error: true }); return; }
+  try {
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    if (error) throw error;
+    toast('Password set. You can now sign in with email + password on any device.');
+  } catch (err) {
+    toast('Could not set password: ' + (err.message || err), { error: true, duration: 6000 });
   }
 });
 
