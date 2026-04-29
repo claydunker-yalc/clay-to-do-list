@@ -635,21 +635,6 @@
     color: var(--faint);
     font-style: italic;
   }
-  .add-task-hint {
-    margin-top: 0.5rem;
-    font-size: 0.7rem;
-    font-weight: 300;
-    color: var(--faint);
-    letter-spacing: 0.02em;
-  }
-  .add-task-hint code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.85em;
-    color: var(--muted);
-    background: var(--subtle);
-    padding: 0.05em 0.35em;
-    border-radius: 4px;
-  }
   .add-task-controls {
     display: flex;
     align-items: center;
@@ -989,7 +974,6 @@
 
   <div class="add-task">
     <input type="text" class="add-task-input" id="addTaskInput" placeholder="Add a task&hellip;" />
-    <div class="add-task-hint">Tip: <code>[label](https://url)</code> for clickable links</div>
     <input type="text" class="add-task-new-section" id="addTaskNewSection" placeholder="New section name&hellip;" style="display:none" />
     <div class="add-task-controls">
       <div class="add-task-sections" id="addTaskSections"></div>
