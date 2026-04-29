@@ -28,6 +28,7 @@
     --faint: #a3a3a3;
     --hairline: #e7e5e4;
     --subtle: #f5f4f2;
+    --card-border: #efedeb;
   }
   :root[data-theme="dark"] {
     --bg: #0a0a0a;
@@ -37,6 +38,7 @@
     --faint: #6b6b6b;
     --hairline: #262626;
     --subtle: #1c1c1c;
+    --card-border: #1a1a1a;
   }
   body {
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -67,9 +69,30 @@
     max-width: 580px;
     margin: 0 auto;
     background: var(--surface);
-    border: 1px solid var(--hairline);
+    border: 1px solid var(--card-border);
     border-radius: 24px;
     padding: 3.5rem 3rem;
+  }
+
+  /* Book-style ornament: three soft dots, used in place of horizontal
+     divider lines between major content blocks (progress, each section,
+     add-task, footer). Quieter than a hairline rule and feels less like
+     a UI control, more like a typographic break. */
+  .ornament {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2.25rem 0;
+    color: var(--faint);
+    pointer-events: none;
+  }
+  .ornament span {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.55;
   }
   .theme-toggle {
     position: absolute;
@@ -131,9 +154,7 @@
   }
 
   .progress {
-    margin: 0 0 2.75rem;
-    padding-bottom: 0.9rem;
-    border-bottom: 1px solid var(--hairline);
+    margin: 0 0 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -170,8 +191,6 @@
     font-size: 1.25rem;
     color: var(--ink);
     margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--hairline);
     letter-spacing: -0.005em;
     display: flex;
     align-items: baseline;
@@ -304,9 +323,7 @@
   }
 
   .footer {
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--hairline);
+    margin-top: 0;
     display: flex;
     justify-content: center;
     gap: 2rem;
@@ -611,9 +628,7 @@
 
   /* ─── Add task form ─── */
   .add-task {
-    margin-top: 3rem;
-    padding-top: 1.75rem;
-    border-top: 1px solid var(--hairline);
+    margin-top: 0;
   }
   .add-task-input {
     width: 100%;
@@ -933,7 +948,11 @@
     <span class="today-label" id="todayLabel">completed<br>today</span>
   </div>
 
+  <div class="ornament" aria-hidden="true"><span></span><span></span><span></span></div>
+
   <div id="sectionsContainer"></div>
+
+  <div class="ornament" aria-hidden="true"><span></span><span></span><span></span></div>
 
   <!-- Seed data: consumed once by JS to populate localStorage, then ignored.
        Edit here to change the first-run defaults (e.g., for a fresh browser). -->
@@ -975,6 +994,8 @@
       <button class="add-task-submit" id="addTaskSubmit" disabled>Add</button>
     </div>
   </div>
+
+  <div class="ornament" aria-hidden="true"><span></span><span></span><span></span></div>
 
   <div class="footer">
     <button class="reset-btn" id="clearCompletedBtn" type="button">Clear completed</button>
@@ -1765,7 +1786,16 @@ function render() {
 
   const container = $('sectionsContainer');
   container.innerHTML = '';
+  let firstSection = true;
   for (const name of sectionOrder) {
+    if (!firstSection) {
+      const orn = document.createElement('div');
+      orn.className = 'ornament';
+      orn.setAttribute('aria-hidden', 'true');
+      orn.innerHTML = '<span></span><span></span><span></span>';
+      container.appendChild(orn);
+    }
+    firstSection = false;
     const section = document.createElement('div');
     section.className = 'section';
     section.dataset.section = name;
