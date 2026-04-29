@@ -635,6 +635,21 @@
     color: var(--faint);
     font-style: italic;
   }
+  .add-task-hint {
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 300;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+  .add-task-hint code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    color: var(--muted);
+    background: var(--subtle);
+    padding: 0.05em 0.35em;
+    border-radius: 4px;
+  }
   .add-task-controls {
     display: flex;
     align-items: center;
@@ -974,6 +989,7 @@
 
   <div class="add-task">
     <input type="text" class="add-task-input" id="addTaskInput" placeholder="Add a task&hellip;" />
+    <div class="add-task-hint">Tip: <code>[label](https://url)</code> for clickable links</div>
     <input type="text" class="add-task-new-section" id="addTaskNewSection" placeholder="New section name&hellip;" style="display:none" />
     <div class="add-task-controls">
       <div class="add-task-sections" id="addTaskSections"></div>
@@ -1071,6 +1087,59 @@ const state = {
 // ─── Utils ──────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ─── Markdown-style links in task text ─────────────────────
+//
+// Users can type `[label](https://example.com)` in the add-task input or in
+// the inline edit field. parseTaskInput converts that to:
+//   { text: "label",          // plain-text version, used for archive + as the
+//                              //   text column on thelist_tasks
+//     html: "...<a>label</a>" // sanitized html with anchors, stored in
+//                              //   the html column when links are present }
+//
+// Why this design: tasks were already split into (text, html) — html is
+// only set when content needs richer rendering (we already had the AI
+// Survey link this way). Reusing that path keeps the data model unchanged.
+//
+// Security: only http(s) URLs are allowed (no `javascript:` etc.). All
+// label and url text is escapeHtml'd before composing the anchor, so a
+// label like `</a><script>` cannot break out of the link. The rendered
+// html is injected via innerHTML in render(), which is the same path that
+// was already in use, so no new attack surface.
+const MD_LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+function parseTaskInput(raw) {
+  const input = String(raw || '');
+  if (!MD_LINK_RE.test(input)) return { text: input, html: null };
+  MD_LINK_RE.lastIndex = 0;
+  let html = '', plain = '', last = 0, m;
+  while ((m = MD_LINK_RE.exec(input)) !== null) {
+    const before = input.slice(last, m.index);
+    html += escapeHtml(before);
+    plain += before;
+    const label = m[1];
+    const url = m[2];
+    html += `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+    plain += label;
+    last = m.index + m[0].length;
+  }
+  const tail = input.slice(last);
+  return { text: plain + tail, html: html + escapeHtml(tail) };
+}
+
+// When entering edit mode on a task that has html, rebuild the markdown
+// source so the user can keep editing the link rather than losing it.
+// Conservative: only handles plain `<a href="...">label</a>` shapes (which
+// is all we ever generate), preserves surrounding text. If the html turns
+// out to contain anything else, falls back to plain text.
+function htmlToMarkdownSource(html) {
+  if (!html) return null;
+  // Only safe to round-trip if every tag is an anchor.
+  const stripped = html.replace(/<a\s+[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/g, '');
+  if (/<[^>]+>/.test(stripped)) return null;
+  let out = html.replace(/<a\s+[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/g,
+    (_, href, label) => `[${decodeEntities(label)}](${decodeEntities(href)})`);
+  return decodeEntities(out);
+}
 const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const decodeEntities = (s) => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
 const nowIso = () => new Date().toISOString();
@@ -1480,24 +1549,24 @@ async function dbDeleteTask(id) {
   }
 }
 
-// Edit a task's text in place. If the row had custom html (e.g. an anchor
-// tag for the AI Survey link), editing strips it — user can re-add a link
-// later if needed. We decided this is fine because editing is rare and
-// preserving html while letting text change is more complex than it's worth.
-async function dbEditTask(id, newText) {
+// Edit a task's text in place. The `rawInput` may contain markdown link
+// syntax (`[label](https://url)`); parseTaskInput converts that into the
+// (text, html) pair we persist.
+async function dbEditTask(id, rawInput) {
   const t = state.tasks.find(x => x.id === id);
   if (!t) return;
-  const trimmed = (newText || '').trim();
+  const trimmed = (rawInput || '').trim();
   if (!trimmed) { toast('Task text cannot be empty', { error: true }); return; }
-  if (trimmed === t.text && !t.html) return; // no-op
+  const { text, html } = parseTaskInput(trimmed);
+  if (text === t.text && (html || null) === (t.html || null)) return; // no-op
   const prev = { text: t.text, html: t.html };
-  t.text = trimmed;
-  t.html = null;
+  t.text = text;
+  t.html = html;
   render();
   try {
     const { error } = await supabase
       .from('thelist_tasks')
-      .update({ text: trimmed, html: null, updated_at: nowIso() })
+      .update({ text, html, updated_at: nowIso() })
       .eq('id', id);
     if (error) throw error;
     saveCache(TASKS_CACHE, state.tasks);
@@ -1522,7 +1591,10 @@ function beginTaskEdit(taskEl, id) {
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'task-edit-input';
-  input.value = t.text;
+  // If the task has html (links), reconstruct markdown source so the user
+  // can edit the link rather than losing it. Falls back to plain text.
+  const initialValue = (t.html && htmlToMarkdownSource(t.html)) || t.text;
+  input.value = initialValue;
   textSpan.replaceWith(input);
   input.focus();
   input.select();
@@ -1531,7 +1603,8 @@ function beginTaskEdit(taskEl, id) {
   const commit = (save) => {
     if (committed) return;
     committed = true;
-    if (save && input.value.trim() && input.value.trim() !== t.text) {
+    const val = input.value.trim();
+    if (save && val && val !== initialValue.trim()) {
       dbEditTask(id, input.value); // render() will rebuild the row
     } else {
       render(); // restore original
@@ -1897,11 +1970,12 @@ function updateSubmitState() {
 async function submitNewTask() {
   const input = $('addTaskInput');
   const newSecInput = $('addTaskNewSection');
-  const text = input.value.trim();
-  if (!text) return;
+  const raw = input.value.trim();
+  if (!raw) return;
   const section = state.pendingSection === '__new__' ? newSecInput.value.trim() : state.pendingSection;
   if (!section) return;
-  await dbAddTask({ text, section });
+  const { text, html } = parseTaskInput(raw);
+  await dbAddTask({ text, html, section });
   input.value = '';
   newSecInput.value = '';
   newSecInput.style.display = 'none';
