@@ -15,7 +15,7 @@
  * stale data in the cache affecting task state.
  */
 
-const CACHE = 'thelist-v13';
+const CACHE = 'thelist-v14';
 const SHELL = [
   './',
   './index.html',
