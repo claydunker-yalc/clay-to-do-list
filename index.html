@@ -1071,9 +1071,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const THEME_KEY = 'clay-todo-theme';
 const TASKS_CACHE = 'thelist-cache-tasks-v1';
 const ARCHIVE_CACHE = 'thelist-cache-archive-v1';
-// Sections that always render, even when empty. Their section_order is
-// remembered in localStorage so reordering an empty pinned section sticks.
-const PINNED_SECTIONS = ['Do Today'];
+// Sections that always render, even when empty, and are pinned to the
+// very top of the list (above any user-reorderable sections).
+const PINNED_SECTIONS = ['Today'];
 const SECTION_ORDER_CACHE = 'thelist-section-orders-v1';
 const LEGACY_TASKS = 'clay-todo-tasks-v1';
 const LEGACY_ARCHIVE = 'clay-todo-archive-v1';
@@ -1821,28 +1821,29 @@ function sortedTasks() {
     return (a.position || 0) - (b.position || 0);
   });
 }
-// Returns section names in display order, including any pinned sections
-// that have no current tasks (slotted in at their cached or default order).
+// Returns section names in display order. PINNED_SECTIONS are always first
+// (in the order they appear in the constant), regardless of section_order or
+// whether they currently have tasks. Everything else sorts by section_order.
 function getSections() {
   const seen = new Set();
-  const out = [];
-  // Each entry: { name, order } — order is what we sort by below.
-  const entries = [];
+  const pinned = [];
+  const others = [];
   for (const t of sortedTasks()) {
-    if (!seen.has(t.section)) {
-      seen.add(t.section);
-      out.push(t.section);
-      entries.push({ name: t.section, order: t.section_order != null ? t.section_order : 1e9 });
+    if (seen.has(t.section)) continue;
+    seen.add(t.section);
+    if (PINNED_SECTIONS.includes(t.section)) {
+      pinned.push({ name: t.section, idx: PINNED_SECTIONS.indexOf(t.section) });
+    } else {
+      others.push({ name: t.section, order: t.section_order != null ? t.section_order : 1e9 });
     }
   }
+  // Add pinned sections that currently have no tasks so they still render.
   for (const pin of PINNED_SECTIONS) {
-    if (seen.has(pin)) continue;
-    const cached = readSectionOrderCache()[pin];
-    entries.push({ name: pin, order: cached != null ? cached : 0 });
+    if (!seen.has(pin)) pinned.push({ name: pin, idx: PINNED_SECTIONS.indexOf(pin) });
   }
-  // Re-sort with the pinned additions inserted at their proper spot.
-  entries.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
-  return entries.map(e => e.name);
+  pinned.sort((a, b) => a.idx - b.idx);
+  others.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+  return [...pinned.map(p => p.name), ...others.map(o => o.name)];
 }
 
 function render() {
