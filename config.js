@@ -15,3 +15,8 @@
 
 export const SUPABASE_URL = 'https://libkdykbuhpvcnrqixko.supabase.co';
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpYmtkeWtidWhwdmNucnFpeGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzNzk0MTYsImV4cCI6MjA4NDk1NTQxNn0.CjM6DEH7c4ptu0wIhRMm84mCG_dQljZsEIIR9eYhz_E';
+
+// Optional public URL for the trusted Clay Mate/Open Brain sync bridge.
+// This is not a secret. The browser authenticates with Clay's The List
+// Supabase session; the Edge Function keeps service-role keys server-side.
+export const SYNC_THE_LIST_FUNCTION_URL = 'https://bnmupvkjtghnzczkmpxj.supabase.co/functions/v1/sync-the-list';

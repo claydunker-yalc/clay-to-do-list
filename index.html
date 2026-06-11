@@ -1036,7 +1036,8 @@
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SYNC_THE_LIST_FUNCTION_URL } from './config.js';
+import { completeLinkedOpenBrainTasks, shouldAttemptOpenBrainCompletion } from './scripts/thelist_sync_client.mjs';
 
 /* ─────────────────────────────────────────────────────────────
    The List — Supabase-backed data layer
@@ -1732,9 +1733,37 @@ async function dbReorderSection(fromName, toName, before) {
   }
 }
 
+async function syncCompletedTasksToOpenBrain(completed) {
+  if (!shouldAttemptOpenBrainCompletion(completed)) {
+    return { ok: true, skipped: true };
+  }
+  const { data: { session } } = await supabase.auth.getSession();
+  return completeLinkedOpenBrainTasks({
+    tasks: completed,
+    endpointUrl: SYNC_THE_LIST_FUNCTION_URL,
+    accessToken: session && session.access_token,
+  });
+}
+
 async function dbClearCompleted() {
   const completed = state.tasks.filter(t => t.completed);
   if (!completed.length) { toast('Nothing to clear'); return; }
+
+  try {
+    await syncCompletedTasksToOpenBrain(completed);
+  } catch (err) {
+    const message = err && err.message ? err.message : String(err);
+    const clearAnyway = confirm(
+      'Open Brain completion sync failed. These linked tasks may still look open to Donn.\n\n' +
+      message +
+      '\n\nClear completed tasks from The List anyway?'
+    );
+    if (!clearAnyway) {
+      toast('Clear cancelled; Open Brain was not updated.', { error: true, duration: 6000 });
+      return;
+    }
+  }
+
   const ids = completed.map(t => t.id);
   const backup = [...state.tasks];
   state.tasks = state.tasks.filter(t => !t.completed);
